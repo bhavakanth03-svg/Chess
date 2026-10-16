@@ -1,0 +1,3419 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIxMzgyMjA2OTI3MjE2NDE1MDk0OSIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjXzAzNmJiMGUwNTc4Y2I0ZDJfaW5kZXguaHRtbC03MyJ9LCJleHAiOjE3OTIxMzMxODYsImlhdCI6MTc5MjEyOTU4NiwiYWxnIjoiUlMyNTYifQ.mW6lrDbgGyyaItCVc10H2BSiSu2ViHhLczWdlFj_IrPNTRKeASzIFwhb2OYkEr9jDtYu3RK1NjIxj5To7hU1bvVeS5fQk618huyXi9286MxgHBpEnXFco8QKrvwcXoAoo-R8ckrari1_IM3YhKJWQNdhRZQH6aRTiEfYWtIJdO2vtVrn3ck0P4Oh5GonlqJESdGSm3uGvCM2S5dN2iZBL_RW8C_sxpL9l4O5fl1p9G3wOPtk7LGzh1i6qEXc4NfYi6W4srEpO4OiXRw_AUDC19fUIC1Hd54B2uf9KwXz9yFnqGSCHpje1mg7xpO-mFU5Oaao41xSUsj_hYW7EJFJHg","c_036bb0e0578cb4d2_index.html-73")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jujutsu Kaisen: Domain Expansion 3D Gothic Chess</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&amp;family=Plus+Jakarta+Sans:wght@400;600;700&amp;family=JetBrains+Mono:wght@500;700&amp;family=Noto+Serif+JP:wght@900&amp;display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,500,1,0">
+    <!-- Core 3D, Chess & P2P Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js" crossorigin="anonymous"></script>
+
+    <style>
+        :root {
+            --m3-surface: rgba(14, 11, 24, 0.86);
+            --m3-surface-high: rgba(26, 20, 42, 0.94);
+            --sorcerer-cyan: #00E5FF;
+            --curse-crimson: #FF1744;
+            --domain-violet: #AA00FF;
+            --gothic-gold: #FFD700;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: radial-gradient(circle at 50% 35%, #1c1136 0%, #07050c 100%);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #F5F2FA;
+        }
+
+        .font-gothic { font-family: 'Cinzel Decorative', serif; }
+        .font-mono-code { font-family: 'JetBrains Mono', monospace; }
+        .font-kanji { font-family: 'Noto Serif JP', serif; }
+
+        #canvas-container {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        .hud-layer {
+            position: fixed;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0.65rem;
+        }
+
+        .hud-interactive {
+            pointer-events: auto;
+        }
+
+        .m3-card {
+            background: var(--m3-surface);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.78), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            border-radius: 1.15rem;
+            transition: all 0.25s cubic-bezier(0.2, 0, 0, 1);
+        }
+
+        .m3-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.42rem 0.78rem;
+            border-radius: 9999px;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.03em;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #E6E1E5;
+            transition: all 0.18s ease;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .m3-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 215, 0, 0.6);
+            transform: translateY(-1px);
+            box-shadow: 0 0 16px rgba(170, 0, 255, 0.4);
+        }
+
+        .m3-btn.active-cyan {
+            background: linear-gradient(135deg, rgba(0, 229, 255, 0.28), rgba(110, 0, 255, 0.34));
+            border-color: var(--sorcerer-cyan);
+            color: #FFFFFF;
+            box-shadow: 0 0 18px rgba(0, 229, 255, 0.45);
+        }
+
+        .m3-btn.active-crimson {
+            background: linear-gradient(135deg, rgba(255, 23, 68, 0.32), rgba(160, 0, 70, 0.38));
+            border-color: var(--curse-crimson);
+            color: #FFFFFF;
+            box-shadow: 0 0 18px rgba(255, 23, 68, 0.45);
+        }
+
+        .m3-btn.active-gold {
+            background: linear-gradient(135deg, rgba(255, 215, 0, 0.3), rgba(255, 110, 0, 0.35));
+            border-color: var(--gothic-gold);
+            color: #FFFBEB;
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.45);
+        }
+
+        .gothic-corner {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-color: var(--gothic-gold);
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .gothic-tl { top: 6px; left: 6px; border-top: 2px solid; border-left: 2px solid; }
+        .gothic-tr { top: 6px; right: 6px; border-top: 2px solid; border-right: 2px solid; }
+        .gothic-bl { bottom: 6px; left: 6px; border-bottom: 2px solid; border-left: 2px solid; }
+        .gothic-br { bottom: 6px; right: 6px; border-bottom: 2px solid; border-right: 2px solid; }
+
+        /* Anime Action Speed Lines Overlay during Clashes */
+        @keyframes speedLineSpin {
+            0% { transform: scale(1) rotate(0deg); opacity: 0.8; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 1; }
+            100% { transform: scale(1) rotate(360deg); opacity: 0.8; }
+        }
+        .anime-speedlines {
+            background: repeating-conic-gradient(
+                from 0deg,
+                transparent 0deg 3.5deg,
+                rgba(255, 255, 255, 0.18) 3.5deg 4.5deg,
+                transparent 4.5deg 10deg,
+                rgba(0, 229, 255, 0.24) 10deg 11.2deg,
+                transparent 11.2deg 16deg,
+                rgba(255, 23, 68, 0.28) 16deg 17.5deg
+            );
+            mask-image: radial-gradient(circle, transparent 28%, black 75%);
+            -webkit-mask-image: radial-gradient(circle, transparent 28%, black 75%);
+            animation: speedLineSpin 4s linear infinite;
+        }
+
+        @keyframes impactFlashAnim {
+            0% { opacity: 0; }
+            18% { opacity: 0.95; background: #ffffff; }
+            40% { opacity: 0.88; background: #ff1744; mix-blend-mode: difference; }
+            65% { opacity: 0.65; background: #00e5ff; mix-blend-mode: screen; }
+            100% { opacity: 0; }
+        }
+        .anime-impact-flash {
+            animation: impactFlashAnim 0.55s ease-out forwards;
+        }
+
+        @keyframes screenShakeAnim {
+            0%, 100% { transform: translate3d(0, 0, 0); }
+            15% { transform: translate3d(-12px, 9px, 0) rotate(-0.8deg); }
+            30% { transform: translate3d(12px, -10px, 0) rotate(0.8deg); }
+            45% { transform: translate3d(-9px, -6px, 0) rotate(-0.5deg); }
+            60% { transform: translate3d(9px, 7px, 0) rotate(0.5deg); }
+            75% { transform: translate3d(-5px, 4px, 0); }
+        }
+        .screen-shake {
+            animation: screenShakeAnim 0.48s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+        }
+
+        @keyframes kanjiSlam {
+            0% { transform: scale(2.8) rotate(-8deg); opacity: 0; filter: blur(8px); }
+            25% { transform: scale(0.94) rotate(2deg); opacity: 1; filter: blur(0px); }
+            40% { transform: scale(1.06) rotate(-1deg); opacity: 1; }
+            80% { transform: scale(1) rotate(0deg); opacity: 1; }
+            100% { transform: scale(1.25); opacity: 0; }
+        }
+        .kanji-animate {
+            animation: kanjiSlam 1.65s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes btPulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 229, 255, 0.6); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 229, 255, 0); }
+        }
+        .bt-connected-pill {
+            animation: btPulse 2s infinite;
+        }
+
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.25); }
+        ::-webkit-scrollbar-thumb { background: rgba(255, 215, 0, 0.35); border-radius: 9999px; }
+    </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.-inset-1\/2{inset:-50%}.inset-0{inset:0px}.inset-x-0{left:0px;right:0px}.bottom-0{bottom:0px}.bottom-1{bottom:0.25rem}.left-1\/2{left:50%}.right-1{right:0.25rem}.top-0{top:0px}.top-20{top:5rem}.z-20{z-index:20}.z-30{z-index:30}.z-40{z-index:40}.mx-0\.5{margin-left:0.125rem;margin-right:0.125rem}.mx-auto{margin-left:auto;margin-right:auto}.mb-1{margin-bottom:0.25rem}.mb-1\.5{margin-bottom:0.375rem}.mb-2{margin-bottom:0.5rem}.mb-3{margin-bottom:0.75rem}.mb-4{margin-bottom:1rem}.mt-0\.5{margin-top:0.125rem}.mt-2{margin-top:0.5rem}.line-clamp-1{overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:1}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-1\.5{height:0.375rem}.h-10{height:2.5rem}.h-12{height:3rem}.h-16{height:4rem}.h-2{height:0.5rem}.h-20{height:5rem}.h-3{height:0.75rem}.h-4{height:1rem}.h-8{height:2rem}.h-full{height:100%}.max-h-\[92vh\]{max-height:92vh}.min-h-\[20px\]{min-height:20px}.w-1\.5{width:0.375rem}.w-10{width:2.5rem}.w-20{width:5rem}.w-3{width:0.75rem}.w-8{width:2rem}.w-\[1px\]{width:1px}.w-full{width:100%}.min-w-0{min-width:0px}.max-w-3xl{max-width:48rem}.max-w-\[1760px\]{max-width:1760px}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.-translate-y-2{--tw-translate-y:-0.5rem;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.transform{transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes pulse{50%{opacity:.5}}.animate-pulse{animation:pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite}.cursor-pointer{cursor:pointer}.grid-cols-1{grid-template-columns:repeat(1, minmax(0, 1fr))}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-end{align-items:flex-end}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-0\.5{gap:0.125rem}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.space-y-0\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.125rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.125rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.rounded-xl{border-radius:0.75rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-t{border-top-width:1px}.border-amber-400{--tw-border-opacity:1;border-color:rgb(251 191 36 / var(--tw-border-opacity, 1))}.border-amber-400\/30{border-color:rgb(251 191 36 / 0.3)}.border-amber-400\/40{border-color:rgb(251 191 36 / 0.4)}.border-amber-400\/50{border-color:rgb(251 191 36 / 0.5)}.border-amber-400\/60{border-color:rgb(251 191 36 / 0.6)}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.border-cyan-400\/30{border-color:rgb(34 211 238 / 0.3)}.border-cyan-400\/40{border-color:rgb(34 211 238 / 0.4)}.border-cyan-400\/50{border-color:rgb(34 211 238 / 0.5)}.border-cyan-500\/20{border-color:rgb(6 182 212 / 0.2)}.border-cyan-500\/30{border-color:rgb(6 182 212 / 0.3)}.border-emerald-400\/40{border-color:rgb(52 211 153 / 0.4)}.border-purple-400\/40{border-color:rgb(192 132 252 / 0.4)}.border-purple-400\/50{border-color:rgb(192 132 252 / 0.5)}.border-rose-400\/30{border-color:rgb(251 113 133 / 0.3)}.border-rose-500\/20{border-color:rgb(244 63 94 / 0.2)}.border-rose-500\/40{border-color:rgb(244 63 94 / 0.4)}.border-white\/10{border-color:rgb(255 255 255 / 0.1)}.border-white\/15{border-color:rgb(255 255 255 / 0.15)}.border-white\/20{border-color:rgb(255 255 255 / 0.2)}.border-white\/5{border-color:rgb(255 255 255 / 0.05)}.bg-amber-400{--tw-bg-opacity:1;background-color:rgb(251 191 36 / var(--tw-bg-opacity, 1))}.bg-amber-500\/15{background-color:rgb(245 158 11 / 0.15)}.bg-amber-500\/20{background-color:rgb(245 158 11 / 0.2)}.bg-black\/40{background-color:rgb(0 0 0 / 0.4)}.bg-black\/45{background-color:rgb(0 0 0 / 0.45)}.bg-black\/50{background-color:rgb(0 0 0 / 0.5)}.bg-black\/55{background-color:rgb(0 0 0 / 0.55)}.bg-black\/80{background-color:rgb(0 0 0 / 0.8)}.bg-black\/85{background-color:rgb(0 0 0 / 0.85)}.bg-black\/90{background-color:rgb(0 0 0 / 0.9)}.bg-cyan-400{--tw-bg-opacity:1;background-color:rgb(34 211 238 / var(--tw-bg-opacity, 1))}.bg-cyan-500\/20{background-color:rgb(6 182 212 / 0.2)}.bg-cyan-500\/30{background-color:rgb(6 182 212 / 0.3)}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-purple-950{--tw-bg-opacity:1;background-color:rgb(59 7 100 / var(--tw-bg-opacity, 1))}.bg-purple-950\/90{background-color:rgb(59 7 100 / 0.9)}.bg-rose-950\/90{background-color:rgb(76 5 25 / 0.9)}.bg-white\/15{background-color:rgb(255 255 255 / 0.15)}.bg-white\/5{background-color:rgb(255 255 255 / 0.05)}.bg-rose-500{--tw-bg-opacity:1;background-color:rgb(244 63 94 / var(--tw-bg-opacity, 1))}.bg-gradient-to-b{background-image:linear-gradient(to bottom, var(--tw-gradient-stops))}.bg-gradient-to-br{background-image:linear-gradient(to bottom right, var(--tw-gradient-stops))}.bg-gradient-to-r{background-image:linear-gradient(to right, var(--tw-gradient-stops))}.from-cyan-300{--tw-gradient-from:#67e8f9 var(--tw-gradient-from-position);--tw-gradient-to:rgb(103 232 249 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-400{--tw-gradient-from:#22d3ee var(--tw-gradient-from-position);--tw-gradient-to:rgb(34 211 238 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-cyan-950\/60{--tw-gradient-from:rgb(8 51 68 / 0.6) var(--tw-gradient-from-position);--tw-gradient-to:rgb(8 51 68 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-purple-950\/80{--tw-gradient-from:rgb(59 7 100 / 0.8) var(--tw-gradient-from-position);--tw-gradient-to:rgb(59 7 100 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.from-rose-600{--tw-gradient-from:#e11d48 var(--tw-gradient-from-position);--tw-gradient-to:rgb(225 29 72 / 0) var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), var(--tw-gradient-to)}.via-amber-200{--tw-gradient-to:rgb(253 230 138 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #fde68a var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-600{--tw-gradient-to:rgb(147 51 234 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), #9333ea var(--tw-gradient-via-position), var(--tw-gradient-to)}.via-purple-950\/60{--tw-gradient-to:rgb(59 7 100 / 0)  var(--tw-gradient-to-position);--tw-gradient-stops:var(--tw-gradient-from), rgb(59 7 100 / 0.6) var(--tw-gradient-via-position), var(--tw-gradient-to)}.to-black\/90{--tw-gradient-to:rgb(0 0 0 / 0.9) var(--tw-gradient-to-position)}.to-blue-500{--tw-gradient-to:#3b82f6 var(--tw-gradient-to-position)}.to-red-500{--tw-gradient-to:#ef4444 var(--tw-gradient-to-position)}.to-rose-400{--tw-gradient-to:#fb7185 var(--tw-gradient-to-position)}.to-rose-600{--tw-gradient-to:#e11d48 var(--tw-gradient-to-position)}.to-rose-950\/60{--tw-gradient-to:rgb(76 5 25 / 0.6) var(--tw-gradient-to-position)}.bg-clip-text{-webkit-background-clip:text;background-clip:text}.\!p-2{padding:0.5rem !important}.p-1\.5{padding:0.375rem}.p-2{padding:0.5rem}.p-3{padding:0.75rem}.p-3\.5{padding:0.875rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.\!px-2{padding-left:0.5rem !important;padding-right:0.5rem !important}.\!px-3{padding-left:0.75rem !important;padding-right:0.75rem !important}.\!py-1{padding-top:0.25rem !important;padding-bottom:0.25rem !important}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.px-6{padding-left:1.5rem;padding-right:1.5rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.pb-3{padding-bottom:0.75rem}.pr-1{padding-right:0.25rem}.pt-3{padding-top:0.75rem}.\!text-\[10px\]{font-size:10px !important}.\!text-xs{font-size:0.75rem !important;line-height:1rem !important}.text-2xl{font-size:1.5rem;line-height:2rem}.text-6xl{font-size:3.75rem;line-height:1}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-black{font-weight:900}.font-bold{font-weight:700}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-none{line-height:1}.leading-relaxed{line-height:1.625}.tracking-\[0\.25em\]{letter-spacing:0.25em}.tracking-\[0\.28em\]{letter-spacing:0.28em}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-200{--tw-text-opacity:1;color:rgb(253 230 138 / var(--tw-text-opacity, 1))}.text-amber-200\/90{color:rgb(253 230 138 / 0.9)}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-cyan-200{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.text-cyan-300\/80{color:rgb(103 232 249 / 0.8)}.text-cyan-300\/90{color:rgb(103 232 249 / 0.9)}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-purple-200{--tw-text-opacity:1;color:rgb(233 213 255 / var(--tw-text-opacity, 1))}.text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254 / var(--tw-text-opacity, 1))}.text-rose-300{--tw-text-opacity:1;color:rgb(253 164 175 / var(--tw-text-opacity, 1))}.text-rose-300\/80{color:rgb(253 164 175 / 0.8)}.text-rose-400{--tw-text-opacity:1;color:rgb(251 113 133 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-300\/80{color:rgb(203 213 225 / 0.8)}.text-slate-300\/90{color:rgb(203 213 225 / 0.9)}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-transparent{color:transparent}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.opacity-0{opacity:0}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_12px_\#00E5FF\]{--tw-shadow:0 0 12px #00E5FF;--tw-shadow-colored:0 0 12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_16px_rgba\(170\2c 0\2c 255\2c 0\.75\)\]{--tw-shadow:0 0 16px rgba(170,0,255,0.75);--tw-shadow-colored:0 0 16px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_20px_rgba\(0\2c 229\2c 255\2c 0\.25\)\]{--tw-shadow:0 0 20px rgba(0,229,255,0.25);--tw-shadow-colored:0 0 20px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_20px_rgba\(0\2c 229\2c 255\2c 0\.4\)\]{--tw-shadow:0 0 20px rgba(0,229,255,0.4);--tw-shadow-colored:0 0 20px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_25px_rgba\(255\2c 215\2c 0\2c 0\.4\)\]{--tw-shadow:0 0 25px rgba(255,215,0,0.4);--tw-shadow-colored:0 0 25px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-\[0_0_12px_\#FF1744\]{--tw-shadow:0 0 12px #FF1744;--tw-shadow-colored:0 0 12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.drop-shadow-\[0_0_40px_rgba\(255\2c 23\2c 68\2c 0\.98\)\]{--tw-drop-shadow:drop-shadow(0 0 40px rgba(255,23,68,0.98));filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur-md{--tw-backdrop-blur:blur(12px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition-all{transition-property:all;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-300{transition-duration:300ms}.duration-500{transition-duration:500ms}.hover\:border-cyan-400:hover{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.focus\:border-cyan-400:focus{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}@media (min-width: 640px){.sm\:block{display:block}.sm\:inline{display:inline}}@media (min-width: 768px){.md\:col-span-3{grid-column:span 3 / span 3}.md\:col-span-4{grid-column:span 4 / span 4}.md\:col-span-5{grid-column:span 5 / span 5}.md\:inline{display:inline}.md\:grid-cols-12{grid-template-columns:repeat(12, minmax(0, 1fr))}.md\:grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.md\:grid-cols-3{grid-template-columns:repeat(3, minmax(0, 1fr))}.md\:text-2xl{font-size:1.5rem;line-height:2rem}.md\:text-8xl{font-size:6rem;line-height:1}.md\:text-sm{font-size:0.875rem;line-height:1.25rem}}@media (min-width: 1024px){.lg\:inline{display:inline}}@media (min-width: 1280px){.xl\:inline{display:inline}}@media (min-width: 1536px){.\32xl\:block{display:block}.\32xl\:inline{display:inline}}</style></head>
+<body>
+
+    <!-- 3D WebGL Viewport -->
+    <div id="canvas-container" class="screen-shake"><canvas width="1185" height="1035" style="display: block; width: 948px; height: 828px;"></canvas></div>
+
+    <!-- Anime Battle Speed-Lines & Impact Flash Overlay -->
+    <div id="anime-clash-overlay" class="fixed inset-0 z-15 pointer-events-none overflow-hidden hidden">
+        <div class="absolute -inset-1/2 anime-speedlines"></div>
+        <div id="anime-impact-screen" class="absolute inset-0 anime-impact-flash"></div>
+        <!-- Top & Bottom Cinematic Letterbox Bars -->
+        <div class="absolute top-0 inset-x-0 h-12 bg-black/90 border-b border-amber-400/50 flex items-center justify-between px-6">
+            <span id="clash-attacker-banner" class="font-gothic text-xs md:text-sm tracking-widest text-cyan-300 font-bold">♔ SATORU GOJO: UNLIMITED VOID (無量空処)</span>
+            <span class="font-mono-code text-[11px] text-amber-300 animate-pulse">⚡ ANIME CURSED CLASH CUTSCENE ACTIVE</span>
+            <span id="clash-defender-banner" class="font-gothic text-xs md:text-sm tracking-widest text-rose-400 font-bold">♚ RYOMEN SUKUNA: MALEVOLENT SHRINE (伏魔御廚子)</span>
+        </div>
+        <div class="absolute bottom-0 inset-x-0 h-12 bg-black/90 border-t border-amber-400/50 flex items-center justify-center">
+            <span id="clash-subtitle-quote" class="font-mono-code text-xs text-white tracking-[0.25em] uppercase">"DOMAIN EXPANSION CLASH • HOLLOW PURPLE VS. KAMINO FUGA!"</span>
+        </div>
+    </div>
+
+    <!-- Center Dramatic Kanji & Technique Callout Overlay -->
+    <div id="kanji-overlay" class="fixed inset-0 z-20 pointer-events-none flex flex-col items-center justify-center hidden">
+        <div id="kanji-main" class="font-kanji text-6xl md:text-8xl font-black tracking-widest drop-shadow-[0_0_40px_rgba(255,23,68,0.98)] text-white kanji-animate" style="text-shadow: rgba(0, 229, 255, 0.98) 0px 0px 40px, rgba(170, 0, 255, 0.85) 0px 0px 80px;">領域展開</div>
+        <div id="kanji-sub" class="font-gothic text-base md:text-2xl tracking-[0.28em] uppercase mt-2 px-6 py-1.5 rounded-full bg-black/85 border border-amber-400/60 text-amber-300 shadow-2xl">DOMAIN EXPANSION: INFINITE CATHEDRAL</div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="domain-toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+        <div class="px-5 py-2 rounded-full bg-black/90 border border-amber-400/60 text-amber-200 font-mono-code text-xs tracking-wider shadow-[0_0_25px_rgba(255,215,0,0.4)] flex items-center gap-2">
+            <span class="material-symbols-rounded text-base text-cyan-300">auto_awesome</span>
+            <span id="domain-toast-text">DOMAIN EXPANSION ACTIVE</span>
+        </div>
+    </div>
+
+    <div id="bt-modal" class="fixed inset-0 z-30 bg-black/80 backdrop-blur-md items-center justify-center p-4 hidden">
+        <div class="m3-card hud-interactive w-full max-w-3xl p-6 relative border-cyan-400/40 max-h-[92vh] overflow-y-auto">
+            <div class="gothic-corner gothic-tl"></div>
+            <div class="gothic-corner gothic-tr"></div>
+            <div class="gothic-corner gothic-bl"></div>
+            <div class="gothic-corner gothic-br"></div>
+
+            <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-cyan-500/20 border border-cyan-400 flex items-center justify-center shadow-[0_0_20px_rgba(0,229,255,0.4)]">
+                        <span class="material-symbols-rounded text-cyan-300 text-2xl">bluetooth_searching</span>
+                    </div>
+                    <div>
+                        <h2 class="font-gothic text-lg font-bold text-white tracking-wider">
+                            MULTIPLAYER HUB • BLUETOOTH, ROOM CODE &amp; P2P
+                        </h2>
+                        <p class="text-xs text-cyan-300/90">
+                            Connect two phones, tablets, or laptops via 4-Digit Room Code, Bluetooth BLE, or Instant Local Sync
+                        </p>
+                    </div>
+                </div>
+                <button onclick="closeBluetoothModal()" class="m3-btn !p-2 rounded-full">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+
+            <!-- Connection Status Banner -->
+            <div id="bt-modal-status-banner" class="p-3 rounded-2xl bg-white/5 border border-white/15 flex items-center justify-between mb-4">
+                <div class="flex items-center gap-2.5">
+                    <span id="bt-status-dot" class="w-3 h-3 rounded-full bg-amber-400 animate-pulse"></span>
+                    <div>
+                        <div id="bt-status-title" class="text-xs font-bold uppercase tracking-wider text-white">
+                            STATUS: READY TO CONNECT DEVICES
+                        </div>
+                        <div id="bt-status-desc" class="text-[11px] text-slate-300">
+                            EASIEST WAY FOR 2 PHONES/LAPTOPS: Use "Method A: 1-Click Room Code" below!
+                        </div>
+                    </div>
+                </div>
+                <span id="bt-role-badge" class="text-[11px] font-mono-code px-2.5 py-1 rounded-full bg-purple-950 border border-purple-400/40 text-purple-200">
+                    UNLINKED
+                </span>
+            </div>
+
+            <!-- METHOD A (RECOMMENDED): 1-CLICK ROOM CODE -->
+            <div class="p-4 rounded-2xl bg-gradient-to-r from-cyan-950/60 via-purple-950/60 to-rose-950/60 border border-cyan-400/50 mb-4">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                    <span class="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                        <span class="material-symbols-rounded text-base">cell_tower</span>
+                        METHOD A (EASIEST): 1-CLICK ROOM CODE FOR 2 PHONES / LAPTOPS
+                    </span>
+                    <span class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+                        WORKS ACROSS ANY 2 DEVICES
+                    </span>
+                </div>
+                <p class="text-[11px] text-slate-200 mb-3">
+                    <b>How to connect 2 phones/laptops:</b> Player 1 clicks <b>"Create Room Code"</b>. Player 2 opens this game on their device, types that 4-digit code into <b>"Join Code"</b>, and clicks <b>Join</b>!
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="p-3 rounded-xl bg-black/55 border border-cyan-400/30 flex flex-col justify-between gap-2">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-cyan-200">PLAYER 1: HOST (SORCERERS • WHITE)</span>
+                            <span id="room-code-display" class="font-mono-code text-base font-black px-3 py-0.5 rounded-lg bg-cyan-500/20 border border-cyan-400 text-amber-300 tracking-widest">----</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="createQuickRoomCode()" class="m3-btn active-cyan flex-1 justify-center py-2">
+                                <span class="material-symbols-rounded text-base">add_link</span>
+                                <span>Create Room Code</span>
+                            </button>
+                            <button onclick="shareRoomInviteLink()" class="m3-btn !px-3" title="Copy Direct Invite URL">
+                                <span class="material-symbols-rounded text-base">share</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="p-3 rounded-xl bg-black/55 border border-rose-400/30 flex flex-col justify-between gap-2">
+                        <span class="text-xs font-bold text-rose-300">PLAYER 2: JOIN (CURSES • BLACK)</span>
+                        <div class="flex gap-2">
+                            <input id="join-room-code-input" type="text" maxlength="10" placeholder="Enter Code (e.g. JJK-4821)" class="flex-1 rounded-xl bg-black/80 border border-white/20 px-3 py-1.5 text-xs font-mono-code uppercase text-amber-300 focus:outline-none focus:border-cyan-400">
+                            <button onclick="joinQuickRoomCode()" class="m3-btn active-crimson px-4 justify-center">
+                                <span class="material-symbols-rounded text-base">login</span>
+                                <span>Join</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Method B & C Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+                <div class="p-3.5 rounded-2xl bg-black/45 border border-cyan-500/30 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-cyan-300 flex items-center gap-1">
+                                <span class="material-symbols-rounded text-base">bluetooth</span>
+                                Method B: Hardware Bluetooth BLE Scan
+                            </span>
+                            <span id="ble-hw-support" class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-200">
+                                READY
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-300/90 leading-relaxed mb-3">
+                            Uses <code class="text-amber-300">navigator.bluetooth.requestDevice</code> to pair nearby BLE devices, then links your room automatically.
+                        </p>
+                    </div>
+                    <button onclick="scanHardwareBluetooth()" class="m3-btn active-cyan w-full justify-center py-2">
+                        <span class="material-symbols-rounded text-base">bluetooth_searching</span>
+                        <span>Scan Nearby Bluetooth Devices</span>
+                    </button>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-black/45 border border-amber-400/30 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-bold text-amber-300 flex items-center gap-1">
+                                <span class="material-symbols-rounded text-base">wifi_tethering</span>
+                                Method C: Instant Dual-Window Sync
+                            </span>
+                            <span class="text-[10px] font-mono-code px-2 py-0.5 rounded bg-amber-500/20 text-amber-200">
+                                ZERO-CONFIG
+                            </span>
+                        </div>
+                        <p class="text-[11px] text-slate-300/90 leading-relaxed mb-3">
+                            Open this game in two browser tabs side-by-side and click below—every move &amp; anime clash syncs live!
+                        </p>
+                    </div>
+                    <button onclick="startInstantAutoDiscovery()" class="m3-btn border-amber-400/50 text-amber-200 w-full justify-center py-2">
+                        <span class="material-symbols-rounded text-base">bolt</span>
+                        <span>Auto-Pair Browser Windows Now</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Domain Taunts -->
+            <div class="pt-3 border-t border-white/15 flex flex-wrap items-center justify-between gap-2">
+                <span class="text-[11px] font-mono-code text-slate-400">SEND CURSED TAUNT TO OPPONENT:</span>
+                <div class="flex flex-wrap gap-1.5">
+                    <button onclick="sendP2PTaunt('無量空処', 'NAH, I\'D WIN.')" class="m3-btn !text-xs !py-1">🤞 "Nah, I'd Win"</button>
+                    <button onclick="sendP2PTaunt('伏魔御廚子', 'STAND PROUD, YOU ARE STRONG.')" class="m3-btn !text-xs !py-1">🔥 "Stand Proud"</button>
+                    <button onclick="sendP2PTaunt('黒閃', 'BLACK FLASH IMMINENT!')" class="m3-btn !text-xs !py-1">⚡ "Black Flash!"</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="deploy-modal" class="fixed inset-0 z-30 bg-black/85 backdrop-blur-md items-center justify-center p-4 flex">
+        <div class="m3-card hud-interactive w-full max-w-3xl p-6 relative border-amber-400/50 max-h-[92vh] overflow-y-auto">
+            <div class="gothic-corner gothic-tl"></div>
+            <div class="gothic-corner gothic-tr"></div>
+            <div class="gothic-corner gothic-bl"></div>
+            <div class="gothic-corner gothic-br"></div>
+
+            <div class="flex items-center justify-between border-b border-white/15 pb-3 mb-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-400 flex items-center justify-center">
+                        <span class="material-symbols-rounded text-amber-300 text-2xl">rocket_launch</span>
+                    </div>
+                    <div>
+                        <h2 class="font-gothic text-lg font-bold text-white tracking-wider">
+                            PLAY OUTSIDE PREVIEW • DEPLOY &amp; 3D MODEL HUB
+                        </h2>
+                        <p class="text-xs text-amber-200/90">
+                            Download as a 1-file app, play fullscreen on phone/PC, host online for free, or import custom .GLB 3D anime models!
+                        </p>
+                    </div>
+                </div>
+                <button onclick="closeDeployModal()" class="m3-btn !p-2 rounded-full">
+                    <span class="material-symbols-rounded">close</span>
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div class="p-3.5 rounded-2xl bg-black/50 border border-cyan-400/40 flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-cyan-300 flex items-center gap-1 mb-1">
+                            <span class="material-symbols-rounded text-base">download</span>
+                            1. Download Game (.HTML)
+                        </div>
+                        <p class="text-[11px] text-slate-300 mb-3">
+                            Saves the entire 3D game as a single <code class="text-amber-300">jjk-3d-chess.html</code> file. Double-click it in any browser on PC or phone to play outside this preview!
+                        </p>
+                    </div>
+                    <button onclick="downloadStandaloneGameFile()" class="m3-btn active-cyan w-full justify-center py-2">
+                        <span class="material-symbols-rounded text-base">download</span>
+                        <span>Download Standalone HTML</span>
+                    </button>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-black/50 border border-amber-400/40 flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-amber-300 flex items-center gap-1 mb-1">
+                            <span class="material-symbols-rounded text-base">open_in_new</span>
+                            2. Launch Fullscreen / New Tab
+                        </div>
+                        <p class="text-[11px] text-slate-300 mb-3">
+                            Break out of the editor preview frame immediately into a dedicated Fullscreen window or standalone browser tab.
+                        </p>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="toggleFullscreenDomain()" class="m3-btn border-amber-400/50 text-amber-200 flex-1 justify-center py-2">
+                            <span class="material-symbols-rounded text-base">fullscreen</span>
+                            <span>Fullscreen</span>
+                        </button>
+                        <button onclick="openInStandaloneTab()" class="m3-btn border-amber-400/50 text-amber-200 flex-1 justify-center py-2">
+                            <span class="material-symbols-rounded text-base">open_in_new</span>
+                            <span>New Tab</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-black/50 border border-purple-400/40 flex flex-col justify-between">
+                    <div>
+                        <div class="text-xs font-bold text-purple-300 flex items-center gap-1 mb-1">
+                            <span class="material-symbols-rounded text-base">view_in_ar</span>
+                            3. Import Custom .GLB/.GLTF
+                        </div>
+                        <p class="text-[11px] text-slate-300 mb-3">
+                            Have a Sketchfab/Blender <code class="text-amber-300">.glb</code> 3D model of Gojo or Sukuna? Load it onto the currently inspected piece!
+                        </p>
+                    </div>
+                    <label class="m3-btn border-purple-400/50 text-purple-200 w-full justify-center py-2 cursor-pointer">
+                        <span class="material-symbols-rounded text-base">upload_file</span>
+                        <span>Load Custom .GLB Model</span>
+                        <input type="file" accept=".glb,.gltf" class="hidden" onchange="handleCustomGLBUpload(event)">
+                    </label>
+                </div>
+            </div>
+
+            <div class="p-4 rounded-2xl bg-white/5 border border-white/15 space-y-2 text-xs">
+                <h3 class="font-gothic text-sm font-bold text-amber-300">
+                    🌐 HOW TO DEPLOY ONLINE IN 30 SECONDS (SO FRIENDS CAN PLAY ON THEIR PHONES):
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px] text-slate-200">
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/10">
+                        <b class="text-cyan-300 block mb-1">Option A: Netlify Drop (15 sec)</b>
+                        1. Click <b>"Download Standalone HTML"</b> above and rename it to <code class="text-amber-300">index.html</code>.<br>
+                        2. Put it inside a folder on your desktop.<br>
+                        3. Drag that folder onto <b>app.netlify.com/drop</b> for an instant public URL!
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/10">
+                        <b class="text-amber-300 block mb-1">Option B: GitHub Pages</b>
+                        1. Upload the downloaded <code class="text-amber-300">index.html</code> to a GitHub repo.<br>
+                        2. Enable <b>Settings → Pages</b> to get a permanent link.
+                    </div>
+                    <div class="p-3 rounded-xl bg-black/40 border border-white/10">
+                        <b class="text-rose-300 block mb-1">How Friends Connect:</b>
+                        1. Both of you open the link.<br>
+                        2. Click <b>"Bluetooth / Room"</b> in the navbar.<br>
+                        3. Share the 4-digit Room Code and play live!
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hud-layer">
+
+        <!-- TOP SINGLE-LEVEL NAVIGATION DOCK (Every Option in One Navbar) -->
+        <header class="w-full flex flex-wrap items-center justify-between gap-2 max-w-[1760px] mx-auto">
+            <!-- Brand & Live Status -->
+            <div class="m3-card hud-interactive px-3 py-1.5 flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 via-purple-600 to-rose-600 flex items-center justify-center shadow-[0_0_16px_rgba(170,0,255,0.75)]">
+                    <span class="material-symbols-rounded text-white text-lg">temple_buddhist</span>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="font-gothic text-xs md:text-sm font-bold tracking-wider bg-gradient-to-r from-cyan-300 via-amber-200 to-rose-400 bg-clip-text text-transparent">
+                            INFINITE CATHEDRAL
+                        </h1>
+                        <span class="text-[10px] font-mono-code px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-400/40 text-amber-300">
+                            64-SQ
+                        </span>
+                        <span id="nav-bt-badge" onclick="openBluetoothModal()" class="cursor-pointer text-[10px] font-mono-code uppercase px-2 py-0.5 rounded-full bg-purple-950/90 border border-purple-400/50 text-purple-200 flex items-center gap-1 hover:border-cyan-400">
+                            <span class="w-1.5 h-1.5 rounded-full bg-amber-400" id="nav-bt-dot"></span>
+                            <span id="nav-bt-text">P2P READY</span>
+                        </span>
+                    </div>
+                    <p class="text-[10px] text-slate-300/80 hidden 2xl:block">
+                        32 Articulated JJK Figures • Anime Clash Cutscenes • Bluetooth &amp; Room Code
+                    </p>
+                </div>
+            </div>
+
+            <!-- Comprehensive Single-Level Navbar -->
+            <nav class="m3-card hud-interactive px-2.5 py-1.5 flex flex-wrap items-center gap-1">
+                <!-- 1. Game Modes -->
+                <button id="btn-mode-ai" onclick="setGameMode('ai')" class="m3-btn active-cyan" title="Play vs Cursed Spirit AI">
+                    <span class="material-symbols-rounded text-base">smart_toy</span>
+                    <span>vs AI</span>
+                </button>
+                <button id="btn-mode-2p" onclick="setGameMode('2p')" class="m3-btn" title="2-Player Local Pass &amp; Play">
+                    <span class="material-symbols-rounded text-base">group</span>
+                    <span>2P Local</span>
+                </button>
+                <button id="btn-mode-bt" onclick="openBluetoothModal()" class="m3-btn border-cyan-400/50 text-cyan-200" title="Connect Nearby Device via Bluetooth or 4-Digit Room Code">
+                    <span class="material-symbols-rounded text-base">bluetooth_searching</span>
+                    <span>Bluetooth / Room</span>
+                </button>
+                <button id="btn-ai-grade" onclick="cycleAIGrade()" class="m3-btn text-amber-300 border-amber-400/30" title="Cycle AI Difficulty">
+                    <span class="material-symbols-rounded text-base">military_tech</span>
+                    <span id="ai-grade-label" class="hidden xl:inline">Grade 1</span>
+                </button>
+
+                <div class="h-4 w-[1px] bg-white/15 mx-0.5 hidden sm:block"></div>
+
+                <!-- 2. Instant Anime Battle & Domain Showcase Triggers -->
+                <button onclick="triggerDomainClashShowcase()" class="m3-btn active-gold" title="Trigger Gojo vs. Sukuna Full-Screen Anime Domain Clash Cutscene Now!">
+                    <span class="material-symbols-rounded text-base">bolt</span>
+                    <span>⚡ Domain Clash Demo</span>
+                </button>
+                <button id="btn-anime-cam" onclick="toggleAnimeClashCam()" class="m3-btn active-crimson" title="Toggle Dynamic Anime Fight Cutscene Camera on Every Move">
+                    <span class="material-symbols-rounded text-base">movie_filter</span>
+                    <span id="anime-cam-label">Anime Fight: ON</span>
+                </button>
+                <button id="btn-grid-coords" onclick="toggleBoardCoords()" class="m3-btn active-cyan" title="Toggle 64-Square (A1-H8) Glowing Tactical Coordinates">
+                    <span class="material-symbols-rounded text-base">apps</span>
+                    <span class="hidden lg:inline">64-Grid</span>
+                </button>
+                <button id="btn-label-mode" onclick="cycleLabelMode()" class="m3-btn active-cyan" title="Toggle Floating 3D Character Identification Badges">
+                    <span class="material-symbols-rounded text-base">badge</span>
+                    <span id="label-mode-text" class="hidden md:inline">IDs: ALL</span>
+                </button>
+
+                <div class="h-4 w-[1px] bg-white/15 mx-0.5 hidden sm:block"></div>
+
+                <!-- 3. Camera Angles -->
+                <button id="cam-sorcerer" onclick="setCameraPreset('sorcerer')" class="m3-btn " title="Sorcerer South Perspective (Gojo Side)">
+                    <span class="material-symbols-rounded text-base">visibility</span>
+                    <span class="hidden 2xl:inline">Gojo</span>
+                </button>
+                <button id="cam-curse" onclick="setCameraPreset('curse')" class="m3-btn active-cyan" title="Curse North Perspective (Sukuna Side)">
+                    <span class="material-symbols-rounded text-base">local_fire_department</span>
+                    <span class="hidden 2xl:inline">Sukuna</span>
+                </button>
+                <button id="cam-top" onclick="setCameraPreset('top')" class="m3-btn " title="Overhead 64-Square Tactical View">
+                    <span class="material-symbols-rounded text-base">grid_on</span>
+                </button>
+                <button id="cam-orbit" onclick="setCameraPreset('orbit')" class="m3-btn " title="Cinematic Cathedral 360 Orbit">
+                    <span class="material-symbols-rounded text-base">360</span>
+                </button>
+
+                <div class="h-4 w-[1px] bg-white/15 mx-0.5 hidden sm:block"></div>
+
+                <!-- 4. Audio, Undo, Reset & Deploy -->
+                <button id="btn-audio" onclick="toggleAudio()" class="m3-btn active-cyan" title="Toggle Synthesized Cursed Audio">
+                    <span id="icon-audio" class="material-symbols-rounded text-base">volume_up</span>
+                </button>
+                <button onclick="undoLastMove()" class="m3-btn" title="Undo Last Move">
+                    <span class="material-symbols-rounded text-base">undo</span>
+                </button>
+                <button onclick="resetDomainGame(true)" class="m3-btn active-crimson" title="Reset Domain (New Game)">
+                    <span class="material-symbols-rounded text-base">restart_alt</span>
+                </button>
+                <button onclick="openDeployModal()" class="m3-btn border-amber-400/60 text-amber-200 bg-amber-500/15" title="Download Standalone HTML, Open Fullscreen, Deploy Online, or Load .GLB 3D Models">
+                    <span class="material-symbols-rounded text-base">rocket_launch</span>
+                    <span class="hidden sm:inline">Deploy / App</span>
+                </button>
+            </nav>
+        </header>
+
+        <!-- BOTTOM TACTICAL DOCK: Turn Status, Captured Reliquary, 3D Character Portrait Inspector & Move Log -->
+        <footer class="w-full grid grid-cols-1 md:grid-cols-12 gap-2.5 max-w-[1760px] mx-auto items-end">
+
+            <!-- Left Card: Active Turn & Cursed Energy Clash Balance (4 cols) -->
+            <div class="m3-card hud-interactive p-3 md:col-span-4 relative">
+                <div class="gothic-corner gothic-tl"></div>
+                <div class="gothic-corner gothic-bl"></div>
+
+                <div class="flex items-center justify-between mb-1.5">
+                    <div class="flex items-center gap-2">
+                        <span id="turn-dot" class="w-3 h-3 rounded-full bg-cyan-400 shadow-[0_0_12px_#00E5FF]"></span>
+                        <span id="turn-title" class="font-gothic text-xs md:text-sm font-bold tracking-wider text-cyan-300">JUJUTSU SORCERERS' TURN (WHITE)</span>
+                    </div>
+                    <span id="game-status-pill" class="text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-200">ACTIVE DOMAIN</span>
+                </div>
+
+                <!-- Cursed Energy Tug-of-War Bar -->
+                <div class="w-full h-2 rounded-full bg-rose-950/90 overflow-hidden border border-white/15 mb-2 flex">
+                    <div id="ce-bar-white" class="h-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500" style="width: 50%;"></div>
+                    <div id="ce-bar-black" class="h-full bg-gradient-to-r from-rose-600 to-red-500 transition-all duration-500" style="width: 50%;"></div>
+                </div>
+
+                <!-- Shattered Reliquary (Captured Pieces) -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-1.5 rounded-xl bg-black/45 border border-cyan-500/20">
+                        <div class="text-[9px] font-mono-code text-cyan-300/80 uppercase">Exorcised Curses</div>
+                        <div id="captured-by-white" class="min-h-[20px] flex flex-wrap gap-0.5 text-sm leading-none mt-0.5 text-rose-400">—</div>
+                    </div>
+                    <div class="p-1.5 rounded-xl bg-black/45 border border-rose-500/20">
+                        <div class="text-[9px] font-mono-code text-rose-300/80 uppercase">Fallen Sorcerers</div>
+                        <div id="captured-by-black" class="min-h-[20px] flex flex-wrap gap-0.5 text-sm leading-none mt-0.5 text-cyan-300">—</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Center Card: Live 3D Character Vessel Inspector & Animation Studio (5 cols) -->
+            <div class="m3-card hud-interactive p-3 md:col-span-5 relative">
+                <div class="gothic-corner gothic-tl"></div>
+                <div class="gothic-corner gothic-tr"></div>
+
+                <div class="flex items-center gap-3">
+                    <!-- Dedicated 3D Close-Up Portrait Turntable Canvas -->
+                    <div class="relative w-20 h-20 rounded-2xl bg-gradient-to-b from-purple-950/80 to-black/90 border border-amber-400/50 overflow-hidden shrink-0 shadow-[0_0_20px_rgba(0,229,255,0.25)]">
+                        <canvas id="inspector-canvas" class="w-full h-full block" width="100" height="100" style="width: 80px; height: 80px;"></canvas>
+                        <span id="inspector-square-badge" class="absolute bottom-1 right-1 text-[9px] font-mono-code px-1.5 py-0.2 rounded bg-black/80 border border-amber-400/40 text-amber-300">F6</span>
+                    </div>
+
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1">
+                            <h3 id="inspector-name" class="font-gothic text-xs md:text-sm font-bold text-white truncate">♞ Jogo (Disaster Flame Knight)</h3>
+                            <span id="inspector-kanji" class="font-kanji text-xs text-amber-300 shrink-0">蓋棺鉄囲山</span>
+                        </div>
+                        <div id="inspector-technique" class="text-[11px] font-semibold text-cyan-300 truncate">Coffin of the Iron Mountain • Maximum Meteor</div>
+                        <p id="inspector-Visuals" class="text-[10px] text-slate-300 line-clamp-1 mt-0.5">Erupting volcanic crater head, glowing magma crown, giant cyclops eye, dual ear vents.</p>
+
+                        <!-- Direct Character Animation Triggers -->
+                        <div class="grid grid-cols-3 gap-1.5 mt-2">
+                            <button onclick="triggerInspectorAnimation('idle')" class="m3-btn !px-2 !py-1 !text-[10px] justify-center border-cyan-400/40 text-cyan-200">
+                                <span class="material-symbols-rounded text-xs">self_improvement</span>
+                                <span>Aura Surge</span>
+                            </button>
+                            <button onclick="triggerInspectorAnimation('attack')" class="m3-btn !px-2 !py-1 !text-[10px] justify-center border-amber-400/40 text-amber-200">
+                                <span class="material-symbols-rounded text-xs">flash_on</span>
+                                <span>Anime Strike</span>
+                            </button>
+                            <button onclick="triggerInspectorAnimation('shatter')" class="m3-btn !px-2 !py-1 !text-[10px] justify-center border-rose-500/40 text-rose-300">
+                                <span class="material-symbols-rounded text-xs">grain</span>
+                                <span>Shatter Demo</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Card: Chronicle Move Log & Promotion Selector (3 cols) -->
+            <div class="m3-card hud-interactive p-3 md:col-span-3 relative">
+                <div class="gothic-corner gothic-tr"></div>
+                <div class="gothic-corner gothic-br"></div>
+
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[10px] font-mono-code uppercase tracking-wider text-amber-300 flex items-center gap-1">
+                        <span class="material-symbols-rounded text-xs">history_edu</span>
+                        Cursed Chronicle
+                    </span>
+                    <div class="flex items-center gap-1 text-[10px]">
+                        <span class="text-slate-400">Promote:</span>
+                        <button id="promo-q" onclick="setPromotionPiece('q')" class="px-1.5 py-0.5 rounded bg-cyan-500/30 border border-cyan-400 text-white font-bold">♕</button>
+                        <button id="promo-r" onclick="setPromotionPiece('r')" class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">♖</button>
+                        <button id="promo-n" onclick="setPromotionPiece('n')" class="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">♘</button>
+                    </div>
+                </div>
+
+                <div id="move-log" class="h-16 overflow-y-auto font-mono-code text-[11px] space-y-0.5 pr-1 text-slate-200 bg-black/40 rounded-xl p-2 border border-white/10"><div class="text-slate-400 italic">Domain Expansion reset. Click any glowing Sorcerer piece to begin...</div></div>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        /***************************************************************************
+         * 1. JUJUTSU KAISEN CHARACTER LORE & 3D PIECE REGISTRY
+         ***************************************************************************/
+        const JJK_LORE = {
+            w: {
+                k: {
+                    name: 'Satoru Gojo (Sorcerer King)',
+                    short: 'GOJO',
+                    icon: '♔',
+                    kanji: '無量空処',
+                    technique: 'Unlimited Void • Hollow Purple',
+                    visuals: 'Spiky white hair, black blindfold wrap, high-collar coat, floating Red & Blue orbs.'
+                },
+                q: {
+                    name: 'Yuta Okkotsu & Rika (Queen)',
+                    short: 'YUTA & RIKA',
+                    icon: '♕',
+                    kanji: '純愛砲',
+                    technique: 'Pure Love Beam • Queen of Curses',
+                    visuals: 'White tunic coat, black katana blade, giant spectral Rika guardian spirit hovering behind.'
+                },
+                b: {
+                    name: 'Suguru Geto (Monk Bishop)',
+                    short: 'GETO',
+                    icon: '♗',
+                    kanji: '呪霊操術',
+                    technique: 'Cursed Spirit Manipulation • Uzumaki',
+                    visuals: 'Golden Buddhist five-fold kesa robes, signature top-knot bun, swirling dark Curse Orbs.'
+                },
+                n: {
+                    name: 'Megumi\'s Divine Dog (Knight)',
+                    short: 'DIVINE DOG',
+                    icon: '♘',
+                    kanji: '玉犬・渾',
+                    technique: 'Ten Shadows • Divine Dog Totality',
+                    visuals: 'Sculpted howling wolf head, sharp white fangs, pointed ears, forehead curse sigil.'
+                },
+                r: {
+                    name: 'Panda Gorilla Core (Rook)',
+                    short: 'PANDA',
+                    icon: '♖',
+                    kanji: 'ゴリラモード',
+                    technique: 'Unblockable Drumming Beat Fortress',
+                    visuals: 'Gothic battlements topped with 3D Panda bust, black ears, eye patches, crimson gauntlets.'
+                },
+                p: {
+                    name: 'Yuji Itadori (Black Flash Pawn)',
+                    short: 'YUJI',
+                    icon: '♙',
+                    kanji: '黒閃',
+                    technique: 'Divergent Fist & Black Flash Strike',
+                    visuals: 'Spiky pink-gold hair, Iconic red hoodie collar, oversized Black Flash lightning fist.'
+                }
+            },
+            b: {
+                k: {
+                    name: 'Ryomen Sukuna (King of Curses)',
+                    short: 'SUKUNA',
+                    icon: '♚',
+                    kanji: '伏魔御廚子',
+                    technique: 'Malevolent Shrine • Cleave & Dismantle',
+                    visuals: 'Four muscular arms holding twin cursed daggers, crimson facial tattoo markings, 4 glowing eyes.'
+                },
+                q: {
+                    name: 'Eight-Handled Sword Mahoraga (Queen)',
+                    short: 'MAHORAGA',
+                    icon: '♛',
+                    kanji: '八握剣異界神将魔虚羅',
+                    technique: 'Dharma Wheel Adaptation & Extermination Blade',
+                    visuals: 'Four sweeping eye-wings, Sword of Extermination arm-blade, rotating 8-handled golden Dharma wheel.'
+                },
+                b: {
+                    name: 'Mahito (Soul Bishop)',
+                    short: 'MAHITO',
+                    icon: '♝',
+                    kanji: '自閉円頓裹',
+                    technique: 'Idle Transfiguration • Soul Multiplicity',
+                    visuals: 'Patchwork facial stitch seams, flowing silver-blue hair, dual transfigured soul-blade arms.'
+                },
+                n: {
+                    name: 'Jogo (Disaster Flame Knight)',
+                    short: 'JOGO',
+                    icon: '♞',
+                    kanji: '蓋棺鉄囲山',
+                    technique: 'Coffin of the Iron Mountain • Maximum Meteor',
+                    visuals: 'Erupting volcanic crater head, glowing magma crown, giant cyclops eye, dual ear vents.'
+                },
+                r: {
+                    name: 'Malevolent Shrine Torii (Rook)',
+                    short: 'SHRINE',
+                    icon: '♜',
+                    kanji: '御廚子',
+                    technique: 'Relentless Slashing Domain Altar',
+                    visuals: 'Crimson Torii gate pillars, horned demon skull lintel, curved pagoda roof.'
+                },
+                p: {
+                    name: 'Sukuna Cursed Finger (Pawn)',
+                    short: 'FINGER',
+                    icon: '♟',
+                    kanji: '特級呪物',
+                    technique: 'Special Grade Cursed Object Resonance',
+                    visuals: 'Gnarled three-jointed demon finger wrapped in glowing paper talisman seals, sharp crimson claw.'
+                }
+            }
+        };
+
+        const PIECE_VALUES = { p: 10, n: 30, b: 32, r: 50, q: 90, k: 900 };
+
+        /***************************************************************************
+         * 2. UI HELPERS & SYNTHESIZED WEB AUDIO SOUND ENGINE
+         ***************************************************************************/
+        let toastTimeout = null;
+        function showToast(message) {
+            const toast = document.getElementById('domain-toast');
+            const text = document.getElementById('domain-toast-text');
+            if (!toast || !text) return;
+            text.textContent = message;
+            toast.classList.remove('opacity-0', '-translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            if (toastTimeout) clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.add('opacity-0', '-translate-y-2');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+
+        function triggerKanjiCallout(kanji, subtitle, isSorcerer = true) {
+            const overlay = document.getElementById('kanji-overlay');
+            const mainEl = document.getElementById('kanji-main');
+            const subEl = document.getElementById('kanji-sub');
+            if (!overlay || !mainEl || !subEl) return;
+
+            mainEl.textContent = kanji;
+            subEl.textContent = subtitle;
+            mainEl.style.textShadow = isSorcerer
+                ? '0 0 40px rgba(0, 229, 255, 0.98), 0 0 80px rgba(170, 0, 255, 0.85)'
+                : '0 0 40px rgba(255, 23, 68, 0.98), 0 0 80px rgba(255, 140, 0, 0.85)';
+
+            overlay.classList.remove('hidden');
+            mainEl.classList.remove('kanji-animate');
+            void mainEl.offsetWidth;
+            mainEl.classList.add('kanji-animate');
+
+            setTimeout(() => {
+                overlay.classList.add('hidden');
+            }, 1650);
+        }
+
+        function triggerScreenShake() {
+            const container = document.getElementById('canvas-container');
+            if (!container) return;
+            container.classList.remove('screen-shake');
+            void container.offsetWidth;
+            container.classList.add('screen-shake');
+        }
+
+        class CursedAudioEngine {
+            constructor() {
+                this.ctx = null;
+                this.enabled = true;
+            }
+            init() {
+                if (!this.ctx) {
+                    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                    if (AudioCtx) this.ctx = new AudioCtx();
+                }
+                if (this.ctx && this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+            playSelect() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(520, now);
+                osc.frequency.exponentialRampToValueAtTime(880, now + 0.12);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.14);
+            }
+            playMove() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(190, now);
+                osc.frequency.exponentialRampToValueAtTime(420, now + 0.22);
+                gain.gain.setValueAtTime(0.18, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.24);
+            }
+            playBlackFlashCapture() {
+                if (!this.enabled) return;
+                this.init();
+                if (!this.ctx) return;
+                const now = this.ctx.currentTime;
+                // Deep Sub-Bass Drop + Cursed Distortion Chord
+                [65, 130, 290, 580].forEach((freq, idx) => {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = idx % 2 === 0 ? 'sawtooth' : 'square';
+                    osc.frequency.setValueAtTime(freq, now);
+                    osc.frequency.exponentialRampToValueAtTime(freq * 0.32, now + 0.55);
+                    gain.gain.setValueAtTime(0.14 / (idx + 1), now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.58);
+                });
+            }
+        }
+        const soundFX = new CursedAudioEngine();
+
+        const TILE_SIZE = 2.1;
+        const BOARD_SPAN = TILE_SIZE * 8;
+
+        let scene, camera, renderer, controls;
+        let raycaster, mouse;
+        let inspectorScene, inspectorCamera, inspectorRenderer, inspectorMeshGroup;
+
+        const squareMeshes = [];
+        const pieceMeshes = {};          // square -> THREE.Group
+        const activeAnimations = [];     // Custom per-frame animations
+        const floatingParticles = [];
+        const cathedralBraziers = [];
+        let roseWindowGroup = null;
+        let domainClashBeamsGroup = null;
+
+        // Chess Game State
+        let chess = null;
+        let selectedSquare = null;
+        let validMovesForSelected = [];
+        let gameMode = 'ai';             // 'ai', '2p', or 'bt'
+        let aiGrade = 2;                 // 1: Grade 2, 2: Grade 1, 3: Special Grade
+        let promotionPiece = 'q';
+        let inspectedSquare = 'e1';
+        let isAnimatingTurn = false;
+        let cameraMode = 'sorcerer';
+        let labelMode = 'all';           // 'all', 'hover', 'off'
+        let hoveredSquare = null;
+        let animeClashCamEnabled = true;
+        let showGridCoordinates = true;
+        const tileCoordSprites = [];
+        const customGLBModels = {};
+        let highlightGroup = null;
+        let materials = {};
+
+        function boardToWorld(row, col) {
+            return new THREE.Vector3(
+                (col - 3.5) * TILE_SIZE,
+                0,
+                (row - 3.5) * TILE_SIZE
+            );
+        }
+
+        function initMaterials() {
+            materials = {
+                whiteMarble: new THREE.MeshStandardMaterial({
+                    color: 0xf4f1fa,
+                    roughness: 0.2,
+                    metalness: 0.12
+                }),
+                blackObsidian: new THREE.MeshStandardMaterial({
+                    color: 0x120d1d,
+                    roughness: 0.16,
+                    metalness: 0.55
+                }),
+                whiteGoldTrim: new THREE.MeshStandardMaterial({
+                    color: 0xffd700,
+                    roughness: 0.22,
+                    metalness: 0.88,
+                    emissive: 0x442d00,
+                    emissiveIntensity: 0.35
+                }),
+                sorcererCoat: new THREE.MeshStandardMaterial({
+                    color: 0x13192e,
+                    roughness: 0.38,
+                    metalness: 0.25
+                }),
+                sorcererSkin: new THREE.MeshStandardMaterial({
+                    color: 0xffe4cf,
+                    roughness: 0.42,
+                    metalness: 0.05
+                }),
+                curseSkin: new THREE.MeshStandardMaterial({
+                    color: 0xc97b84,
+                    roughness: 0.38,
+                    metalness: 0.15
+                }),
+                pureWhiteHair: new THREE.MeshStandardMaterial({
+                    color: 0xffffff,
+                    roughness: 0.25,
+                    emissive: 0x224466,
+                    emissiveIntensity: 0.25
+                }),
+                yujiPinkHair: new THREE.MeshStandardMaterial({
+                    color: 0xff8da1,
+                    roughness: 0.32
+                }),
+                getoMonkGold: new THREE.MeshStandardMaterial({
+                    color: 0xf59e0b,
+                    roughness: 0.3,
+                    metalness: 0.45
+                }),
+                pandaBlack: new THREE.MeshStandardMaterial({
+                    color: 0x111116,
+                    roughness: 0.5
+                }),
+                sorcererEnergy: new THREE.MeshStandardMaterial({
+                    color: 0x00e5ff,
+                    emissive: 0x00e5ff,
+                    emissiveIntensity: 1.4,
+                    roughness: 0.1
+                }),
+                curseEnergy: new THREE.MeshStandardMaterial({
+                    color: 0xff1744,
+                    emissive: 0xff1744,
+                    emissiveIntensity: 1.4,
+                    roughness: 0.1
+                }),
+                hollowPurple: new THREE.MeshStandardMaterial({
+                    color: 0xb517ff,
+                    emissive: 0x9d00ff,
+                    emissiveIntensity: 1.8,
+                    roughness: 0.08
+                }),
+                rikaSpectral: new THREE.MeshStandardMaterial({
+                    color: 0x38bdf8,
+                    emissive: 0x0284c7,
+                    emissiveIntensity: 1.1,
+                    transparent: true,
+                    opacity: 0.82
+                }),
+                mahoragaGold: new THREE.MeshStandardMaterial({
+                    color: 0xffd700,
+                    emissive: 0xb45309,
+                    emissiveIntensity: 0.85,
+                    metalness: 0.9,
+                    roughness: 0.15
+                }),
+                cathedralStone: new THREE.MeshStandardMaterial({
+                    color: 0x181326,
+                    roughness: 0.72,
+                    metalness: 0.18
+                }),
+                cathedralRib: new THREE.MeshStandardMaterial({
+                    color: 0x261e3a,
+                    roughness: 0.5,
+                    metalness: 0.35
+                })
+            };
+        }
+
+        function buildLighting() {
+            const ambient = new THREE.AmbientLight(0xd8cff8, 0.75);
+            scene.add(ambient);
+
+            const mainSpot = new THREE.DirectionalLight(0xfff4e0, 1.35);
+            mainSpot.position.set(12, 28, 14);
+            mainSpot.castShadow = true;
+            mainSpot.shadow.mapSize.width = 2048;
+            mainSpot.shadow.mapSize.height = 2048;
+            scene.add(mainSpot);
+
+            // Sorcerer Cyan Rim Light (South)
+            const sorcererLight = new THREE.PointLight(0x00e5ff, 2.2, 38);
+            sorcererLight.position.set(0, 10, 16);
+            scene.add(sorcererLight);
+
+            // Curse Crimson Rim Light (North)
+            const curseLight = new THREE.PointLight(0xff1744, 2.2, 38);
+            curseLight.position.set(0, 10, -16);
+            scene.add(curseLight);
+
+            // Domain Violet Overhead Glow
+            const violetLight = new THREE.PointLight(0xaa00ff, 1.5, 45);
+            violetLight.position.set(0, 22, 0);
+            scene.add(violetLight);
+        }
+
+        function buildGothicCathedral() {
+            const cathedral = new THREE.Group();
+
+            // 1. Sanctuary Floor & Glowing Runic Circle
+            const floorGeo = new THREE.CylinderGeometry(36, 36, 0.6, 48);
+            const floorMesh = new THREE.Mesh(floorGeo, materials.cathedralStone);
+            floorMesh.position.y = -0.95;
+            floorMesh.receiveShadow = true;
+            cathedral.add(floorMesh);
+
+            const runeRing = new THREE.Mesh(
+                new THREE.RingGeometry(13.5, 14.1, 64),
+                new THREE.MeshBasicMaterial({ color: 0xaa00ff, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+            );
+            runeRing.rotation.x = -Math.PI / 2;
+            runeRing.position.y = -0.62;
+            cathedral.add(runeRing);
+
+            // 2. 12 Soaring Gothic Ribbed Pillars & Cursed Braziers
+            const numPillars = 12;
+            const radius = 21.5;
+            for (let i = 0; i < numPillars; i++) {
+                const angle = (i / numPillars) * Math.PI * 2;
+                const px = Math.cos(angle) * radius;
+                const pz = Math.sin(angle) * radius;
+
+                const pillarGroup = new THREE.Group();
+                pillarGroup.position.set(px, 0, pz);
+                pillarGroup.lookAt(0, 0, 0);
+
+                const colMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 1.25, 26, 12), materials.cathedralRib);
+                colMesh.position.y = 12;
+                pillarGroup.add(colMesh);
+
+                // Pointed Gothic Arch Rib reaching inward
+                const archRib = new THREE.Mesh(new THREE.TorusGeometry(8.5, 0.22, 8, 24, Math.PI / 2), materials.whiteGoldTrim);
+                archRib.position.set(0, 18, 0);
+                archRib.rotation.y = Math.PI / 2;
+                pillarGroup.add(archRib);
+
+                // Floating Cursed Flame Brazier
+                const isSorcererSide = pz > 0;
+                const flameMat = isSorcererSide ? materials.sorcererEnergy : materials.curseEnergy;
+                const brazierOrb = new THREE.Mesh(new THREE.OctahedronGeometry(0.55, 1), flameMat);
+                brazierOrb.position.set(0, 5.5, 1.8);
+                pillarGroup.add(brazierOrb);
+                cathedralBraziers.push({ mesh: brazierOrb, phase: i * 0.7, baseY: 5.5 });
+
+                cathedral.add(pillarGroup);
+            }
+
+            // 3. Stained-Glass Rose Window behind the North Altar
+            roseWindowGroup = new THREE.Group();
+            roseWindowGroup.position.set(0, 15.5, -23.5);
+            const outerRim = new THREE.Mesh(new THREE.TorusGeometry(6.5, 0.45, 12, 36), materials.whiteGoldTrim);
+            roseWindowGroup.add(outerRim);
+
+            for (let p = 0; p < 12; p++) {
+                const pAngle = (p / 12) * Math.PI * 2;
+                const petalMat = p % 2 === 0 ? materials.sorcererEnergy : materials.curseEnergy;
+                const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 12.4, 8), materials.whiteGoldTrim);
+                spoke.rotation.z = pAngle;
+                roseWindowGroup.add(spoke);
+
+                const gem = new THREE.Mesh(new THREE.OctahedronGeometry(0.65, 0), petalMat);
+                gem.position.set(Math.cos(pAngle) * 4.4, Math.sin(pAngle) * 4.4, 0);
+                roseWindowGroup.add(gem);
+            }
+            cathedral.add(roseWindowGroup);
+
+            scene.add(cathedral);
+        }
+
+        function buildFloatingParticles() {
+            const count = 90;
+            for (let i = 0; i < count; i++) {
+                const isCyan = i % 2 === 0;
+                const mat = isCyan ? materials.sorcererEnergy : materials.curseEnergy;
+                const spark = new THREE.Mesh(new THREE.OctahedronGeometry(0.12 + Math.random() * 0.14, 0), mat);
+                spark.position.set(
+                    (Math.random() - 0.5) * 34,
+                    Math.random() * 16 + 0.5,
+                    (Math.random() - 0.5) * 34
+                );
+                scene.add(spark);
+                floatingParticles.push({
+                    mesh: spark,
+                    speedY: 0.015 + Math.random() * 0.025,
+                    phase: Math.random() * Math.PI * 2
+                });
+            }
+        }
+
+        function buildChessboard() {
+            const boardGroup = new THREE.Group();
+
+            // Ornate Outer Gothic Altar Frame
+            const frameGeo = new THREE.BoxGeometry(BOARD_SPAN + 2.4, 0.9, BOARD_SPAN + 2.4);
+            const frameMesh = new THREE.Mesh(frameGeo, materials.cathedralRib);
+            frameMesh.position.y = -0.5;
+            frameMesh.receiveShadow = true;
+            boardGroup.add(frameMesh);
+
+            const goldBorderGeo = new THREE.BoxGeometry(BOARD_SPAN + 0.7, 0.96, BOARD_SPAN + 0.7);
+            const goldBorder = new THREE.Mesh(goldBorderGeo, materials.whiteGoldTrim);
+            goldBorder.position.y = -0.49;
+            boardGroup.add(goldBorder);
+
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const isLight = (r + c) % 2 === 0;
+                    const sqName = `${files[c]}${8 - r}`;
+                    const tileNumber = r * 8 + c + 1; // 1..64
+
+                    const tileMat = isLight
+                        ? materials.whiteMarble.clone()
+                        : materials.blackObsidian.clone();
+
+                    const tileGeo = new THREE.BoxGeometry(TILE_SIZE * 0.98, 0.35, TILE_SIZE * 0.98);
+                    const tileMesh = new THREE.Mesh(tileGeo, tileMat);
+
+                    const worldPos = boardToWorld(r, c);
+                    tileMesh.position.set(worldPos.x, -0.175, worldPos.z);
+                    tileMesh.receiveShadow = true;
+
+                    tileMesh.userData = {
+                        square: sqName,
+                        row: r,
+                        col: c,
+                        isLight,
+                        tileNumber
+                    };
+
+                    boardGroup.add(tileMesh);
+                    squareMeshes.push(tileMesh);
+
+                    // 64-Square Coordinate Label (A1..H8 + #1..#64)
+                    const coordCanvas = document.createElement('canvas');
+                    coordCanvas.width = 128;
+                    coordCanvas.height = 64;
+                    const cctx = coordCanvas.getContext('2d');
+                    cctx.font = 'bold 26px "JetBrains Mono", monospace';
+                    cctx.fillStyle = isLight ? 'rgba(20, 25, 45, 0.82)' : 'rgba(0, 229, 255, 0.88)';
+                    cctx.fillText(sqName.toUpperCase(), 8, 30);
+                    cctx.font = '500 16px "JetBrains Mono", monospace';
+                    cctx.fillStyle = isLight ? 'rgba(120, 90, 20, 0.75)' : 'rgba(255, 215, 0, 0.7)';
+                    cctx.fillText(`#${tileNumber}`, 8, 52);
+
+                    const coordTex = new THREE.CanvasTexture(coordCanvas);
+                    const coordPlane = new THREE.Mesh(
+                        new THREE.PlaneGeometry(0.75, 0.38),
+                        new THREE.MeshBasicMaterial({ map: coordTex, transparent: true, depthWrite: false })
+                    );
+                    coordPlane.rotation.x = -Math.PI / 2;
+                    coordPlane.position.set(worldPos.x - 0.58, 0.015, worldPos.z + 0.68);
+                    boardGroup.add(coordPlane);
+                    tileCoordSprites.push(coordPlane);
+                }
+            }
+
+            scene.add(boardGroup);
+        }
+
+        function createCharacterBadgeSprite(color, type) {
+            const info = JJK_LORE[color][type];
+            const canvas = document.createElement('canvas');
+            canvas.width = 320;
+            canvas.height = 88;
+            const ctx = canvas.getContext('2d');
+
+            const isWhite = color === 'w';
+            ctx.fillStyle = isWhite ? 'rgba(8, 22, 38, 0.88)' : 'rgba(34, 8, 18, 0.88)';
+            ctx.strokeStyle = isWhite ? '#00E5FF' : '#FF1744';
+            ctx.lineWidth = 4;
+
+            ctx.beginPath();
+            ctx.roundRect(6, 6, 308, 76, 38);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.font = 'bold 28px "Plus Jakarta Sans", sans-serif';
+            ctx.fillStyle = '#FFD700';
+            ctx.textAlign = 'center';
+            ctx.fillText(`${info.icon} ${info.short}`, 160, 44);
+
+            ctx.font = '600 16px "JetBrains Mono", monospace';
+            ctx.fillStyle = isWhite ? '#7DD3FC' : '#FDA4AF';
+            ctx.fillText(info.kanji, 160, 68);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+            const sprite = new THREE.Sprite(mat);
+            sprite.scale.set(2.15, 0.6, 1);
+            sprite.renderOrder = 999;
+            return sprite;
+        }
+
+        function createPedestalEmblem(iconChar, isWhite) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.beginPath();
+            ctx.arc(64, 64, 56, 0, Math.PI * 2);
+            ctx.fillStyle = isWhite ? '#0b192c' : '#2a0813';
+            ctx.fill();
+            ctx.lineWidth = 6;
+            ctx.strokeStyle = '#FFD700';
+            ctx.stroke();
+            ctx.font = 'bold 72px serif';
+            ctx.fillStyle = isWhite ? '#00E5FF' : '#FF1744';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(iconChar, 64, 68);
+
+            const tex = new THREE.CanvasTexture(canvas);
+            return new THREE.Mesh(
+                new THREE.CircleGeometry(0.28, 20),
+                new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+            );
+        }
+
+        function createJJKPieceMesh(type, color) {
+            const root = new THREE.Group();
+            const isWhite = color === 'w';
+            const primaryMat = isWhite ? materials.whiteMarble : materials.blackObsidian;
+            const skinMat = isWhite ? materials.sorcererSkin : materials.curseSkin;
+            const energyMat = isWhite ? materials.sorcererEnergy : materials.curseEnergy;
+
+            // 1. Ornate Hexagonal Gothic Pedestal Base
+            const baseMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.72, 0.86, 0.42, 16), primaryMat);
+            baseMesh.position.y = 0.21;
+            baseMesh.castShadow = true;
+            baseMesh.receiveShadow = true;
+            root.add(baseMesh);
+
+            const goldTrim = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.045, 8, 24), materials.whiteGoldTrim);
+            goldTrim.rotation.x = Math.PI / 2;
+            goldTrim.position.y = 0.42;
+            root.add(goldTrim);
+
+            // Front & Back Standard Chess Medallions
+            const info = JJK_LORE[color][type];
+            const frontEmblem = createPedestalEmblem(info.icon, isWhite);
+            frontEmblem.position.set(0, 0.35, 0.78);
+            frontEmblem.rotation.x = -0.22;
+            root.add(frontEmblem);
+
+            // Rotating Cursed Energy Base Sigil Ring
+            const auraGroup = new THREE.Group();
+            auraGroup.position.y = 0.06;
+            const sigilTorus = new THREE.Mesh(new THREE.TorusGeometry(0.86, 0.035, 8, 28), energyMat);
+            sigilTorus.rotation.x = Math.PI / 2;
+            auraGroup.add(sigilTorus);
+            root.add(auraGroup);
+
+            const bodyGroup = new THREE.Group();
+            root.add(bodyGroup);
+
+            let badgeHeight = 3.25;
+            const customKey = `${color}_${type}`;
+
+            if (customGLBModels[customKey]) {
+                bodyGroup.add(customGLBModels[customKey].clone());
+            } else {
+                // Articulated Legs & Anime Stance
+                const leftLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.55, 10), isWhite ? materials.sorcererCoat : primaryMat);
+                leftLeg.position.set(-0.16, 0.68, 0.05);
+                leftLeg.rotation.x = -0.1;
+                bodyGroup.add(leftLeg);
+
+                const rightLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.09, 0.55, 10), isWhite ? materials.sorcererCoat : primaryMat);
+                rightLeg.position.set(0.16, 0.68, -0.05);
+                rightLeg.rotation.x = 0.1;
+                bodyGroup.add(rightLeg);
+
+                // Helper for Anime Eyes
+                const addAnimeEyes = (yPos, zPos, irisMat) => {
+                    [-1, 1].forEach(side => {
+                        const sclera = new THREE.Mesh(new THREE.SphereGeometry(0.042, 8, 8), materials.pureWhiteHair);
+                        sclera.scale.set(1.25, 0.75, 0.5);
+                        sclera.position.set(side * 0.095, yPos, zPos);
+                        bodyGroup.add(sclera);
+                        const iris = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), irisMat);
+                        iris.position.set(side * 0.095, yPos, zPos + 0.02);
+                        bodyGroup.add(iris);
+                    });
+                };
+
+                if (type === 'p') {
+                    badgeHeight = 2.75;
+                    if (isWhite) {
+                        // YUJI ITADORI: Hoodie, Spiky Pink Hair & Divergent Black Flash Fist
+                        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.34, 0.75, 12), materials.sorcererCoat);
+                        torso.position.y = 1.1;
+                        bodyGroup.add(torso);
+                        const hoodie = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.08, 8, 16), materials.curseEnergy);
+                        hoodie.rotation.x = Math.PI / 2;
+                        hoodie.position.y = 1.45;
+                        bodyGroup.add(hoodie);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), skinMat);
+                        head.position.y = 1.68;
+                        bodyGroup.add(head);
+                        addAnimeEyes(1.68, 0.21, materials.curseEnergy);
+                        for (let s = 0; s < 7; s++) {
+                            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.28, 6), materials.yujiPinkHair);
+                            const ang = (s / 7) * Math.PI * 2;
+                            spike.position.set(Math.cos(ang) * 0.16, 1.88, Math.sin(ang) * 0.16);
+                            spike.rotation.set(Math.sin(ang) * 0.5, 0, -Math.cos(ang) * 0.5);
+                            bodyGroup.add(spike);
+                        }
+                        const fist = new THREE.Mesh(new THREE.DodecahedronGeometry(0.22, 0), materials.sorcererEnergy);
+                        fist.position.set(0.38, 1.35, 0.28);
+                        bodyGroup.add(fist);
+                    } else {
+                        // SUKUNA CURSED FINGER
+                        const finger = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.26, 1.35, 10), skinMat);
+                        finger.position.y = 1.15;
+                        finger.rotation.x = 0.15;
+                        bodyGroup.add(finger);
+                        const wrap = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.35, 12), materials.whiteGoldTrim);
+                        wrap.position.y = 0.95;
+                        bodyGroup.add(wrap);
+                        const claw = new THREE.Mesh(new THREE.ConeGeometry(0.14, 0.48, 6), materials.curseEnergy);
+                        claw.position.set(0, 1.92, 0.18);
+                        claw.rotation.x = 0.42;
+                        bodyGroup.add(claw);
+                    }
+                } else if (type === 'r') {
+                    badgeHeight = 3.1;
+                    if (isWhite) {
+                        // PANDA GORILLA CORE
+                        const torso = new THREE.Mesh(new THREE.SphereGeometry(0.46, 14, 14), materials.whiteMarble);
+                        torso.position.y = 1.25;
+                        bodyGroup.add(torso);
+                        const chest = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.35, 14), materials.pandaBlack);
+                        chest.position.y = 1.45;
+                        bodyGroup.add(chest);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.32, 14, 14), materials.whiteMarble);
+                        head.position.y = 1.92;
+                        bodyGroup.add(head);
+                        [-1, 1].forEach(side => {
+                            const ear = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), materials.pandaBlack);
+                            ear.position.set(side * 0.26, 2.18, 0);
+                            bodyGroup.add(ear);
+                            const gauntlet = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.36, 0.26), materials.curseEnergy);
+                            gauntlet.position.set(side * 0.52, 1.32, 0.2);
+                            bodyGroup.add(gauntlet);
+                        });
+                    } else {
+                        // MALEVOLENT SHRINE TORII
+                        [-1, 1].forEach(side => {
+                            const col = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 1.55, 10), materials.curseEnergy);
+                            col.position.set(side * 0.42, 1.2, 0);
+                            bodyGroup.add(col);
+                        });
+                        const roof = new THREE.Mesh(new THREE.BoxGeometry(1.35, 0.22, 0.55), materials.blackObsidian);
+                        roof.position.y = 1.98;
+                        bodyGroup.add(roof);
+                        const skull = new THREE.Mesh(new THREE.SphereGeometry(0.28, 12, 12), materials.whiteMarble);
+                        skull.position.set(0, 1.55, 0.15);
+                        bodyGroup.add(skull);
+                    }
+                } else if (type === 'n') {
+                    badgeHeight = 3.1;
+                    if (isWhite) {
+                        // MEGUMI'S DIVINE DOG
+                        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.4, 0.95, 12), materials.sorcererCoat);
+                        body.position.y = 1.15;
+                        bodyGroup.add(body);
+                        const wolfHead = new THREE.Mesh(new THREE.ConeGeometry(0.36, 0.78, 10), materials.whiteMarble);
+                        wolfHead.rotation.x = Math.PI / 2.2;
+                        wolfHead.position.set(0, 1.78, 0.22);
+                        bodyGroup.add(wolfHead);
+                        [-1, 1].forEach(side => {
+                            const ear = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.35, 6), materials.sorcererCoat);
+                            ear.position.set(side * 0.2, 2.08, -0.05);
+                            bodyGroup.add(ear);
+                        });
+                    } else {
+                        // JOGO VOLCANO SPIRIT
+                        const cloak = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.44, 0.95, 12), materials.getoMonkGold);
+                        cloak.position.y = 1.15;
+                        bodyGroup.add(cloak);
+                        const volcano = new THREE.Mesh(new THREE.CylinderGeometry(0.24, 0.38, 0.65, 12), materials.blackObsidian);
+                        volcano.position.y = 1.82;
+                        bodyGroup.add(volcano);
+                        const lava = new THREE.Mesh(new THREE.SphereGeometry(0.22, 10, 10), materials.curseEnergy);
+                        lava.position.y = 2.15;
+                        bodyGroup.add(lava);
+                        const cyclops = new THREE.Mesh(new THREE.SphereGeometry(0.13, 10, 10), materials.mahoragaGold);
+                        cyclops.position.set(0, 1.78, 0.32);
+                        bodyGroup.add(cyclops);
+                    }
+                } else if (type === 'b') {
+                    badgeHeight = 3.25;
+                    if (isWhite) {
+                        // SUGURU GETO
+                        const robe = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.46, 1.25, 14), materials.getoMonkGold);
+                        robe.position.y = 1.25;
+                        bodyGroup.add(robe);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 14, 14), skinMat);
+                        head.position.y = 1.98;
+                        bodyGroup.add(head);
+                        addAnimeEyes(1.98, 0.22, materials.pandaBlack);
+                        const bun = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 10), materials.pandaBlack);
+                        bun.position.set(0, 2.26, -0.05);
+                        bodyGroup.add(bun);
+                        const orb = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 12), materials.hollowPurple);
+                        orb.position.set(0.38, 1.62, 0.3);
+                        bodyGroup.add(orb);
+                    } else {
+                        // MAHITO
+                        const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.42, 1.2, 12), materials.blackObsidian);
+                        coat.position.y = 1.22;
+                        bodyGroup.add(coat);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.25, 14, 14), skinMat);
+                        head.position.y = 1.95;
+                        bodyGroup.add(head);
+                        addAnimeEyes(1.95, 0.22, materials.sorcererEnergy);
+                        [-1, 1].forEach(side => {
+                            const blade = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.75, 4), materials.whiteMarble);
+                            blade.position.set(side * 0.48, 1.5, 0.22);
+                            blade.rotation.x = 0.65;
+                            bodyGroup.add(blade);
+                        });
+                    }
+                } else if (type === 'q') {
+                    badgeHeight = 3.6;
+                    if (isWhite) {
+                        // YUTA OKKOTSU & RIKA
+                        const tunic = new THREE.Mesh(new THREE.CylinderGeometry(0.26, 0.4, 1.25, 12), materials.whiteMarble);
+                        tunic.position.y = 1.25;
+                        bodyGroup.add(tunic);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.24, 14, 14), skinMat);
+                        head.position.y = 1.98;
+                        bodyGroup.add(head);
+                        addAnimeEyes(1.98, 0.21, materials.sorcererEnergy);
+                        const katana = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.35, 0.08), materials.sorcererEnergy);
+                        katana.position.set(0.38, 1.65, 0.25);
+                        katana.rotation.z = -0.35;
+                        bodyGroup.add(katana);
+                        // Looming Rika Spirit
+                        const rika = new THREE.Mesh(new THREE.ConeGeometry(0.62, 1.65, 10), materials.rikaSpectral);
+                        rika.position.set(0, 2.35, -0.28);
+                        bodyGroup.add(rika);
+                    } else {
+                        // EIGHT-HANDLED SWORD MAHORAGA
+                        const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.36, 0.46, 1.38, 14), materials.whiteMarble);
+                        torso.position.y = 1.3;
+                        bodyGroup.add(torso);
+                        const head = new THREE.Mesh(new THREE.ConeGeometry(0.28, 0.58, 8), materials.whiteMarble);
+                        head.position.y = 2.15;
+                        bodyGroup.add(head);
+                        // Rotating 8-Handled Dharma Wheel
+                        const wheelGroup = new THREE.Group();
+                        wheelGroup.position.set(0, 2.72, -0.1);
+                        const wheelTorus = new THREE.Mesh(new THREE.TorusGeometry(0.48, 0.05, 8, 24), materials.mahoragaGold);
+                        wheelTorus.rotation.x = Math.PI / 2;
+                        wheelGroup.add(wheelTorus);
+                        for (let s = 0; s < 4; s++) {
+                            const spoke = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.15, 6), materials.mahoragaGold);
+                            spoke.rotation.x = Math.PI / 2;
+                            spoke.rotation.z = (s * Math.PI) / 4;
+                            wheelGroup.add(spoke);
+                        }
+                        bodyGroup.add(wheelGroup);
+                        root.userData.dharmaWheel = wheelGroup;
+                    }
+                } else if (type === 'k') {
+                    badgeHeight = 3.8;
+                    if (isWhite) {
+                        // SATORU GOJO (SORCERER KING)
+                        const coat = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.44, 1.42, 14), materials.sorcererCoat);
+                        coat.position.y = 1.32;
+                        bodyGroup.add(coat);
+                        const collar = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.28, 0.28, 14), materials.sorcererCoat);
+                        collar.position.y = 2.02;
+                        bodyGroup.add(collar);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 16), skinMat);
+                        head.position.y = 2.22;
+                        bodyGroup.add(head);
+                        const blindfold = new THREE.Mesh(new THREE.CylinderGeometry(0.27, 0.27, 0.14, 16), materials.pandaBlack);
+                        blindfold.position.y = 2.24;
+                        bodyGroup.add(blindfold);
+                        // Iconic Spiky White Hair
+                        for (let h = 0; h < 9; h++) {
+                            const spike = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.38, 6), materials.pureWhiteHair);
+                            const ang = (h / 9) * Math.PI * 2;
+                            spike.position.set(Math.cos(ang) * 0.16, 2.52, Math.sin(ang) * 0.16);
+                            spike.rotation.set(Math.sin(ang) * 0.55, 0, -Math.cos(ang) * 0.55);
+                            bodyGroup.add(spike);
+                        }
+                        // Floating Red, Blue & Hollow Purple Orbs
+                        const blueOrb = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), materials.sorcererEnergy);
+                        blueOrb.position.set(-0.52, 2.05, 0.25);
+                        bodyGroup.add(blueOrb);
+                        const redOrb = new THREE.Mesh(new THREE.SphereGeometry(0.16, 12, 12), materials.curseEnergy);
+                        redOrb.position.set(0.52, 2.05, 0.25);
+                        bodyGroup.add(redOrb);
+                        const purpleHalo = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.04, 10, 28), materials.hollowPurple);
+                        purpleHalo.position.set(0, 2.65, -0.15);
+                        bodyGroup.add(purpleHalo);
+                    } else {
+                        // RYOMEN SUKUNA (FOUR-ARMED KING OF CURSES)
+                        const kimono = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.48, 1.42, 14), materials.blackObsidian);
+                        kimono.position.y = 1.32;
+                        bodyGroup.add(kimono);
+                        const head = new THREE.Mesh(new THREE.SphereGeometry(0.27, 16, 16), skinMat);
+                        head.position.y = 2.22;
+                        bodyGroup.add(head);
+                        // Sukuna's 4 Glowing Crimson Eyes
+                        addAnimeEyes(2.24, 0.24, materials.curseEnergy);
+                        addAnimeEyes(2.15, 0.23, materials.curseEnergy);
+                        // 4 Muscular Arms
+                        [-1, 1].forEach(side => {
+                            const upperArm = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.08, 0.65, 8), skinMat);
+                            upperArm.position.set(side * 0.48, 1.85, 0.15);
+                            upperArm.rotation.z = side * -0.6;
+                            bodyGroup.add(upperArm);
+
+                            const lowerArm = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.07, 0.58, 8), skinMat);
+                            lowerArm.position.set(side * 0.42, 1.42, 0.25);
+                            lowerArm.rotation.z = side * 0.4;
+                            bodyGroup.add(lowerArm);
+
+                            const cleaver = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.62, 0.14), materials.curseEnergy);
+                            cleaver.position.set(side * 0.68, 2.15, 0.25);
+                            bodyGroup.add(cleaver);
+                        });
+                        const shrineHalo = new THREE.Mesh(new THREE.TorusGeometry(0.58, 0.045, 8, 24), materials.curseEnergy);
+                        shrineHalo.position.set(0, 2.68, -0.15);
+                        bodyGroup.add(shrineHalo);
+                    }
+                }
+            }
+
+            // Floating 3D Character Name Badge
+            const badgeSprite = createCharacterBadgeSprite(color, type);
+            badgeSprite.position.set(0, badgeHeight, 0);
+            root.add(badgeSprite);
+
+            root.userData = {
+                type,
+                color,
+                auraGroup,
+                bodyGroup,
+                badgeSprite,
+                phase: Math.random() * Math.PI * 2
+            };
+
+            return root;
+        }
+
+        function syncBoardPiecesFromFEN() {
+            Object.keys(pieceMeshes).forEach(sq => {
+                scene.remove(pieceMeshes[sq]);
+                delete pieceMeshes[sq];
+            });
+
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            const board = chess.board();
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const cell = board[r][c];
+                    if (cell) {
+                        const sqName = `${files[c]}${8 - r}`;
+                        const mesh = createJJKPieceMesh(cell.type, cell.color);
+                        const worldPos = boardToWorld(r, c);
+                        mesh.position.copy(worldPos);
+                        // Face opposing army
+                        mesh.rotation.y = cell.color === 'w' ? Math.PI : 0;
+                        mesh.userData.square = sqName;
+                        scene.add(mesh);
+                        pieceMeshes[sqName] = mesh;
+                    }
+                }
+            }
+            updateBadgeVisibility();
+        }
+
+        function updateBadgeVisibility() {
+            Object.entries(pieceMeshes).forEach(([sq, mesh]) => {
+                if (!mesh.userData.badgeSprite) return;
+                if (labelMode === 'all') {
+                    mesh.userData.badgeSprite.visible = true;
+                } else if (labelMode === 'hover') {
+                    mesh.userData.badgeSprite.visible = (sq === hoveredSquare || sq === selectedSquare);
+                } else {
+                    mesh.userData.badgeSprite.visible = false;
+                }
+            });
+        }
+
+        function initInspectorViewport() {
+            const canvas = document.getElementById('inspector-canvas');
+            if (!canvas) return;
+            inspectorScene = new THREE.Scene();
+            inspectorCamera = new THREE.PerspectiveCamera(38, 1, 0.1, 30);
+            inspectorCamera.position.set(0, 2.1, 4.3);
+            inspectorCamera.lookAt(0, 1.55, 0);
+
+            inspectorRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            inspectorRenderer.setSize(80, 80);
+            inspectorRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            inspectorScene.add(new THREE.AmbientLight(0xffffff, 0.95));
+            const dirLight = new THREE.DirectionalLight(0xffd700, 1.4);
+            dirLight.position.set(3, 5, 4);
+            inspectorScene.add(dirLight);
+
+            inspectorMeshGroup = new THREE.Group();
+            inspectorScene.add(inspectorMeshGroup);
+        }
+
+        function inspectPieceAtSquare(sq) {
+            const piece = chess.get(sq);
+            if (!piece) return;
+            inspectedSquare = sq;
+            const info = JJK_LORE[piece.color][piece.type];
+
+            document.getElementById('inspector-square-badge').textContent = sq.toUpperCase();
+            document.getElementById('inspector-name').textContent = `${info.icon} ${info.name}`;
+            document.getElementById('inspector-kanji').textContent = info.kanji;
+            document.getElementById('inspector-technique').textContent = info.technique;
+            document.getElementById('inspector-Visuals').textContent = info.visuals;
+
+            if (inspectorMeshGroup) {
+                while (inspectorMeshGroup.children.length > 0) {
+                    inspectorMeshGroup.remove(inspectorMeshGroup.children[0]);
+                }
+                const clonePiece = createJJKPieceMesh(piece.type, piece.color);
+                if (clonePiece.userData.badgeSprite) clonePiece.userData.badgeSprite.visible = false;
+                clonePiece.rotation.y = 0;
+                inspectorMeshGroup.add(clonePiece);
+            }
+        }
+
+        function createShatterExplosion(worldPos, pieceType, pieceColor) {
+            const isWhite = pieceColor === 'w';
+            const shardMat = isWhite ? materials.whiteMarble : materials.blackObsidian;
+            const energyMat = isWhite ? materials.sorcererEnergy : materials.curseEnergy;
+
+            const shards = [];
+            for (let i = 0; i < 28; i++) {
+                const geo = new THREE.DodecahedronGeometry(0.12 + Math.random() * 0.18, 0);
+                const mesh = new THREE.Mesh(geo, i % 3 === 0 ? energyMat : shardMat);
+                mesh.position.copy(worldPos);
+                mesh.position.y += 0.8 + Math.random() * 1.4;
+                scene.add(mesh);
+
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 0.08 + Math.random() * 0.22;
+                shards.push({
+                    mesh,
+                    vx: Math.cos(angle) * speed,
+                    vy: 0.14 + Math.random() * 0.22,
+                    vz: Math.sin(angle) * speed,
+                    rx: (Math.random() - 0.5) * 0.3,
+                    ry: (Math.random() - 0.5) * 0.3
+                });
+            }
+
+            // Expanding Shockwave Ring
+            const ring = new THREE.Mesh(
+                new THREE.RingGeometry(0.3, 0.65, 32),
+                new THREE.MeshBasicMaterial({ color: isWhite ? 0x00e5ff : 0xff1744, side: THREE.DoubleSide, transparent: true, opacity: 0.95 })
+            );
+            ring.rotation.x = -Math.PI / 2;
+            ring.position.set(worldPos.x, 0.08, worldPos.z);
+            scene.add(ring);
+
+            const startTime = performance.now();
+            activeAnimations.push({
+                update: (now) => {
+                    const t = (now - startTime) / 950;
+                    shards.forEach(s => {
+                        s.mesh.position.x += s.vx;
+                        s.mesh.position.y += s.vy;
+                        s.mesh.position.z += s.vz;
+                        s.vy -= 0.0095; // Gravity
+                        if (s.mesh.position.y < 0.1) {
+                            s.mesh.position.y = 0.1;
+                            s.vy *= -0.45;
+                        }
+                        s.mesh.rotation.x += s.rx;
+                        s.mesh.rotation.y += s.ry;
+                        s.mesh.scale.setScalar(Math.max(0.01, 1 - t));
+                    });
+
+                    ring.scale.setScalar(1 + t * 8.5);
+                    ring.material.opacity = Math.max(0, 0.95 * (1 - t));
+
+                    if (t >= 1) {
+                        shards.forEach(s => scene.remove(s.mesh));
+                        scene.remove(ring);
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
+        function spawnAnimeTechniqueVFX(attackerColor, attackerType, startPos, targetPos, isCapture) {
+            const vfxGroup = new THREE.Group();
+            scene.add(vfxGroup);
+
+            const isWhite = attackerColor === 'w';
+            const mainMat = isWhite ? materials.sorcererEnergy : materials.curseEnergy;
+            const subMat = isWhite ? materials.hollowPurple : materials.mahoragaGold;
+
+            if (attackerType === 'k' && isWhite) {
+                // GOJO: Giant Hollow Purple Orb + Lightning Ring
+                const orb = new THREE.Mesh(new THREE.SphereGeometry(isCapture ? 1.05 : 0.65, 20, 20), materials.hollowPurple);
+                const ring = new THREE.Mesh(new THREE.TorusGeometry(isCapture ? 1.45 : 0.9, 0.07, 10, 28), materials.sorcererEnergy);
+                orb.add(ring);
+                vfxGroup.add(orb);
+            } else if (attackerType === 'k' && !isWhite) {
+                // SUKUNA: Crossed Crimson Dismantle Slash Blades
+                for (let s = 0; s < 4; s++) {
+                    const slash = new THREE.Mesh(new THREE.TorusGeometry(1.05, 0.07, 6, 20, Math.PI), materials.curseEnergy);
+                    slash.rotation.set(Math.random(), Math.random(), (s * Math.PI) / 4);
+                    vfxGroup.add(slash);
+                }
+            } else {
+                // BLACK FLASH / CURSED ENERGY STREAM
+                for (let b = 0; b < 6; b++) {
+                    const bolt = new THREE.Mesh(new THREE.OctahedronGeometry(0.32, 0), b % 2 === 0 ? mainMat : subMat);
+                    bolt.scale.set(0.45, 2.6, 0.45);
+                    vfxGroup.add(bolt);
+                }
+            }
+
+            const startTime = performance.now();
+            const duration = isCapture ? 780 : 480;
+
+            activeAnimations.push({
+                update: (now) => {
+                    const t = Math.min(1, (now - startTime) / duration);
+                    vfxGroup.position.lerpVectors(startPos, targetPos, t);
+                    vfxGroup.position.y += Math.sin(t * Math.PI) * 1.8 + 1.25;
+                    vfxGroup.rotation.z += 0.32;
+                    vfxGroup.rotation.y += 0.26;
+                    if (t >= 1) {
+                        scene.remove(vfxGroup);
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
+        // Instant Full-Screen Gojo vs. Sukuna Anime Domain Clash Cutscene Trigger
+        function triggerDomainClashShowcase() {
+            if (isAnimatingTurn) return;
+            soundFX.playBlackFlashCapture();
+            triggerScreenShake();
+
+            const clashOverlay = document.getElementById('anime-clash-overlay');
+            const impactScreen = document.getElementById('anime-impact-screen');
+            clashOverlay.classList.remove('hidden');
+            document.getElementById('clash-attacker-banner').textContent = '♔ SATORU GOJO: UNLIMITED VOID (無量空処)';
+            document.getElementById('clash-defender-banner').textContent = '♚ RYOMEN SUKUNA: MALEVOLENT SHRINE (伏魔御廚子)';
+            document.getElementById('clash-subtitle-quote').textContent = '"DOMAIN EXPANSION CLASH • HOLLOW PURPLE VS. KAMINO FUGA!"';
+
+            if (impactScreen) {
+                impactScreen.classList.remove('anime-impact-flash');
+                void impactScreen.offsetWidth;
+                impactScreen.classList.add('anime-impact-flash');
+            }
+
+            triggerKanjiCallout('領域展開', 'GOJO VS SUKUNA • DOMAIN CLASH!', true);
+
+            const gojoPos = boardToWorld(7, 4);
+            const sukunaPos = boardToWorld(0, 4);
+            const centerPos = new THREE.Vector3(0, 2.2, 0);
+
+            spawnAnimeTechniqueVFX('w', 'k', gojoPos, centerPos, true);
+            spawnAnimeTechniqueVFX('b', 'k', sukunaPos, centerPos, true);
+
+            const savedCam = camera.position.clone();
+            const savedTarget = controls.target.clone();
+            const startTime = performance.now();
+            const duration = 1750;
+            let centerExploded = false;
+
+            activeAnimations.push({
+                update: (now) => {
+                    const t = Math.min(1, (now - startTime) / duration);
+                    const angle = t * Math.PI * 1.35;
+                    camera.position.set(Math.cos(angle) * 14, 7.5 + Math.sin(t * Math.PI) * 3, Math.sin(angle) * 14);
+                    controls.target.set(0, 1.8, 0);
+
+                    if (t >= 0.45 && !centerExploded) {
+                        centerExploded = true;
+                        soundFX.playBlackFlashCapture();
+                        triggerScreenShake();
+                        createShatterExplosion(new THREE.Vector3(0, 0.5, 0), 'k', 'w');
+                        createShatterExplosion(new THREE.Vector3(0, 0.5, 0), 'k', 'b');
+                    }
+
+                    if (t >= 1) {
+                        camera.position.copy(savedCam);
+                        controls.target.copy(savedTarget);
+                        clashOverlay.classList.add('hidden');
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
+        function animateChessMove(moveObj, onComplete) {
+            isAnimatingTurn = true;
+            const fromSq = moveObj.from;
+            const toSq = moveObj.to;
+            const movingMesh = pieceMeshes[fromSq];
+            const capturedMesh = pieceMeshes[toSq];
+
+            if (!movingMesh) {
+                syncBoardPiecesFromFEN();
+                isAnimatingTurn = false;
+                if (onComplete) onComplete();
+                return;
+            }
+
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            const toCol = files.indexOf(toSq[0]);
+            const toRow = 8 - parseInt(toSq[1], 10);
+            const targetWorldPos = boardToWorld(toRow, toCol);
+            const startWorldPos = movingMesh.position.clone();
+
+            const isCapture = Boolean(moveObj.captured);
+            const duration = isCapture ? (animeClashCamEnabled ? 1150 : 680) : (animeClashCamEnabled ? 650 : 450);
+            const startTime = performance.now();
+
+            const savedCamPos = camera.position.clone();
+            const savedTarget = controls.target.clone();
+            const midPoint = new THREE.Vector3().addVectors(startWorldPos, targetWorldPos).multiplyScalar(0.5);
+
+            const clashOverlay = document.getElementById('anime-clash-overlay');
+            const impactScreen = document.getElementById('anime-impact-screen');
+            const attackerInfo = JJK_LORE[moveObj.color][moveObj.piece];
+
+            if (animeClashCamEnabled) {
+                clashOverlay.classList.remove('hidden');
+                document.getElementById('clash-attacker-banner').textContent = `${attackerInfo.icon} ${attackerInfo.short}: ${attackerInfo.technique.toUpperCase()}`;
+                if (isCapture) {
+                    const defColor = moveObj.color === 'w' ? 'b' : 'w';
+                    const defInfo = JJK_LORE[defColor][moveObj.captured];
+                    document.getElementById('clash-defender-banner').textContent = `VS ${defInfo.icon} ${defInfo.short}`;
+                    document.getElementById('clash-subtitle-quote').textContent = `"${attackerInfo.kanji} • ${attackerInfo.technique}!"`;
+                } else {
+                    document.getElementById('clash-defender-banner').textContent = `SQUARE ${toSq.toUpperCase()}`;
+                    document.getElementById('clash-subtitle-quote').textContent = `${attackerInfo.short} TELEPORTS TO ${toSq.toUpperCase()}`;
+                }
+            }
+
+            spawnAnimeTechniqueVFX(moveObj.color, moveObj.piece, startWorldPos, targetWorldPos, isCapture);
+            if (!isCapture) soundFX.playMove();
+
+            let shatterTriggered = false;
+
+            activeAnimations.push({
+                update: (now) => {
+                    const elapsed = now - startTime;
+                    const t = Math.min(1, elapsed / duration);
+                    const ease = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+                    movingMesh.position.lerpVectors(startWorldPos, targetWorldPos, ease);
+                    movingMesh.position.y = Math.sin(t * Math.PI) * (isCapture ? 4.5 : 2.3);
+
+                    if (movingMesh.userData.bodyGroup) {
+                        movingMesh.userData.bodyGroup.rotation.x = Math.sin(t * Math.PI) * (isCapture ? 0.95 : 0.42);
+                        movingMesh.userData.bodyGroup.rotation.y = isCapture ? Math.sin(t * Math.PI * 2) * 0.65 : 0;
+                        const scaleBoost = 1 + Math.sin(t * Math.PI) * (isCapture ? 0.35 : 0.14);
+                        movingMesh.scale.setScalar(scaleBoost);
+                    }
+
+                    if (animeClashCamEnabled) {
+                        const sideOffset = new THREE.Vector3(isCapture ? 6.2 : 8.2, isCapture ? 5.0 : 7.2, moveObj.color === 'w' ? 7.2 : -7.2);
+                        const actionCamPos = midPoint.clone().add(sideOffset);
+                        const camBlend = Math.sin(t * Math.PI);
+                        camera.position.lerpVectors(savedCamPos, actionCamPos, camBlend * (isCapture ? 0.84 : 0.45));
+                        controls.target.lerpVectors(savedTarget, new THREE.Vector3(midPoint.x, 1.5, midPoint.z), camBlend * 0.85);
+                    }
+
+                    if (isCapture && t >= 0.55 && !shatterTriggered) {
+                        shatterTriggered = true;
+                        soundFX.playBlackFlashCapture();
+                        triggerScreenShake();
+
+                        if (animeClashCamEnabled && impactScreen) {
+                            impactScreen.classList.remove('anime-impact-flash');
+                            void impactScreen.offsetWidth;
+                            impactScreen.classList.add('anime-impact-flash');
+                        }
+
+                        triggerKanjiCallout(attackerInfo.kanji, `${attackerInfo.short}: ${attackerInfo.technique}`, moveObj.color === 'w');
+
+                        if (capturedMesh) {
+                            createShatterExplosion(targetWorldPos, moveObj.captured, moveObj.color === 'w' ? 'b' : 'w');
+                            scene.remove(capturedMesh);
+                            delete pieceMeshes[toSq];
+                        }
+                    }
+
+                    if (t >= 1) {
+                        movingMesh.position.copy(targetWorldPos);
+                        movingMesh.scale.set(1, 1, 1);
+                        if (movingMesh.userData.bodyGroup) {
+                            movingMesh.userData.bodyGroup.rotation.set(0, 0, 0);
+                        }
+                        if (animeClashCamEnabled) {
+                            camera.position.copy(savedCamPos);
+                            controls.target.copy(savedTarget);
+                            clashOverlay.classList.add('hidden');
+                        }
+                        syncBoardPiecesFromFEN();
+                        isAnimatingTurn = false;
+                        if (onComplete) onComplete();
+                        return true;
+                    }
+                    return false;
+                }
+            });
+        }
+
+        function triggerInspectorAnimation(mode) {
+            const mesh = pieceMeshes[inspectedSquare];
+            const piece = chess.get(inspectedSquare);
+            if (!mesh || !piece) return;
+            const info = JJK_LORE[piece.color][piece.type];
+
+            if (mode === 'idle') {
+                soundFX.playSelect();
+                triggerKanjiCallout(info.kanji, `${info.short} • CURSED AURA SURGE`, piece.color === 'w');
+                const start = performance.now();
+                activeAnimations.push({
+                    update: (now) => {
+                        const t = Math.min(1, (now - start) / 700);
+                        mesh.scale.setScalar(1 + Math.sin(t * Math.PI) * 0.42);
+                        return t >= 1;
+                    }
+                });
+            } else if (mode === 'attack') {
+                soundFX.playBlackFlashCapture();
+                triggerScreenShake();
+                triggerKanjiCallout(info.kanji, `${info.short}: ${info.technique}`, piece.color === 'w');
+                const startPos = mesh.position.clone();
+                const forwardPos = startPos.clone().add(new THREE.Vector3(0, 0, piece.color === 'w' ? -4.2 : 4.2));
+                spawnAnimeTechniqueVFX(piece.color, piece.type, startPos, forwardPos, true);
+            } else if (mode === 'shatter') {
+                soundFX.playBlackFlashCapture();
+                triggerScreenShake();
+                createShatterExplosion(mesh.position.clone(), piece.type, piece.color);
+                showToast(`VORONOI SHATTER DEMO ON ${info.short}`);
+            }
+        }
+
+        function clearSelection() {
+            selectedSquare = null;
+            validMovesForSelected = [];
+            while (highlightGroup && highlightGroup.children.length > 0) {
+                highlightGroup.remove(highlightGroup.children[0]);
+            }
+            updateBadgeVisibility();
+        }
+
+        function renderMoveHighlights(originSq, moves) {
+            while (highlightGroup.children.length > 0) {
+                highlightGroup.remove(highlightGroup.children[0]);
+            }
+            const files = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            const oCol = files.indexOf(originSq[0]);
+            const oRow = 8 - parseInt(originSq[1], 10);
+            const oPos = boardToWorld(oRow, oCol);
+
+            const originRing = new THREE.Mesh(
+                new THREE.RingGeometry(0.75, 0.96, 32),
+                new THREE.MeshBasicMaterial({ color: 0xffd700, side: THREE.DoubleSide })
+            );
+            originRing.rotation.x = -Math.PI / 2;
+            originRing.position.set(oPos.x, 0.03, oPos.z);
+            highlightGroup.add(originRing);
+
+            moves.forEach(m => {
+                const col = files.indexOf(m.to[0]);
+                const row = 8 - parseInt(m.to[1], 10);
+                const pos = boardToWorld(row, col);
+                const isCap = Boolean(m.captured);
+
+                const marker = new THREE.Mesh(
+                    new THREE.RingGeometry(isCap ? 0.68 : 0.25, isCap ? 0.95 : 0.48, 28),
+                    new THREE.MeshBasicMaterial({
+                        color: isCap ? 0xff1744 : 0x00e5ff,
+                        side: THREE.DoubleSide
+                    })
+                );
+                marker.rotation.x = -Math.PI / 2;
+                marker.position.set(pos.x, 0.03, pos.z);
+                highlightGroup.add(marker);
+            });
+        }
+
+        function handleSquareClick(sqName) {
+            if (isAnimatingTurn || chess.game_over()) return;
+
+            // If in P2P mode with assigned color, enforce turn color
+            if (gameMode === 'bt' && p2pState.connected && p2pState.myColor && chess.turn() !== p2pState.myColor) {
+                showToast(`WAITING FOR OPPONENT (${chess.turn() === 'w' ? 'SORCERERS' : 'CURSES'}) MOVE!`);
+                return;
+            }
+
+            // Check if clicked square is a valid destination for currently selected piece
+            const chosenMove = validMovesForSelected.find(m => m.to === sqName);
+            if (selectedSquare && chosenMove) {
+                executeMove({
+                    from: selectedSquare,
+                    to: sqName,
+                    promotion: promotionPiece
+                }, true);
+                return;
+            }
+
+            const clickedPiece = chess.get(sqName);
+            if (clickedPiece) {
+                inspectPieceAtSquare(sqName);
+                if (clickedPiece.color === chess.turn()) {
+                    selectedSquare = sqName;
+                    validMovesForSelected = chess.moves({ square: sqName, verbose: true });
+                    soundFX.playSelect();
+                    renderMoveHighlights(sqName, validMovesForSelected);
+                    updateBadgeVisibility();
+                    return;
+                }
+            }
+
+            clearSelection();
+        }
+
+        function executeMove(moveInput, broadcastToPeer = true) {
+            const moveResult = chess.move(moveInput);
+            if (!moveResult) return;
+
+            clearSelection();
+            if (broadcastToPeer && p2pState.connected) {
+                sendPeerPacket({ type: 'MOVE', move: moveInput });
+            }
+
+            animateChessMove(moveResult, () => {
+                updateHUDStatus();
+                appendMoveToLog(moveResult);
+                inspectPieceAtSquare(moveResult.to);
+                if (!checkGameEndConditions() && gameMode === 'ai' && chess.turn() === 'b') {
+                    setTimeout(makeCursedAIMove, 360);
+                }
+            });
+        }
+
+        function evaluateBoardState() {
+            const board = chess.board();
+            let score = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const p = board[r][c];
+                    if (p) {
+                        const val = PIECE_VALUES[p.type] || 10;
+                        const centerBonus = (3.5 - Math.abs(3.5 - c)) * 0.6 + (3.5 - Math.abs(3.5 - r)) * 0.6;
+                        score += (p.color === 'b' ? 1 : -1) * (val + centerBonus);
+                    }
+                }
+            }
+            return score;
+        }
+
+        function makeCursedAIMove() {
+            if (chess.game_over() || isAnimatingTurn) return;
+            const moves = chess.moves({ verbose: true });
+            if (!moves.length) return;
+
+            let selectedMove = moves[0];
+            if (aiGrade === 1) {
+                // Grade 2: Mostly random with capture preference
+                const captures = moves.filter(m => m.captured);
+                selectedMove = captures.length && Math.random() > 0.35
+                    ? captures[Math.floor(Math.random() * captures.length)]
+                    : moves[Math.floor(Math.random() * moves.length)];
+            } else {
+                // Grade 1 & Special Grade: 1-2 ply minimax evaluation
+                let bestScore = -Infinity;
+                moves.forEach(m => {
+                    chess.move(m);
+                    let score = evaluateBoardState() + (Math.random() * 1.5);
+                    if (aiGrade === 3) {
+                        const replies = chess.moves({ verbose: true });
+                        let worstReply = Infinity;
+                        replies.forEach(rep => {
+                            chess.move(rep);
+                            worstReply = Math.min(worstReply, evaluateBoardState());
+                            chess.undo();
+                        });
+                        if (replies.length) score = worstReply;
+                    }
+                    chess.undo();
+                    if (score > bestScore) {
+                        bestScore = score;
+                        selectedMove = m;
+                    }
+                });
+            }
+
+            executeMove({
+                from: selectedMove.from,
+                to: selectedMove.to,
+                promotion: 'q'
+            }, false);
+        }
+
+        function updateHUDStatus() {
+            const turn = chess.turn();
+            const isWhite = turn === 'w';
+
+            const dot = document.getElementById('turn-dot');
+            const title = document.getElementById('turn-title');
+            const pill = document.getElementById('game-status-pill');
+
+            dot.className = `w-3 h-3 rounded-full ${isWhite ? 'bg-cyan-400 shadow-[0_0_12px_#00E5FF]' : 'bg-rose-500 shadow-[0_0_12px_#FF1744]'}`;
+            title.textContent = isWhite ? "JUJUTSU SORCERERS' TURN (WHITE)" : "CURSED SPIRITS' TURN (BLACK)";
+            title.className = `font-gothic text-xs md:text-sm font-bold tracking-wider ${isWhite ? 'text-cyan-300' : 'text-rose-400'}`;
+
+            if (chess.in_checkmate()) {
+                pill.textContent = 'DOMAIN COLLAPSE (CHECKMATE)';
+                pill.className = 'text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-amber-500/30 border border-amber-400 text-amber-200';
+            } else if (chess.in_check()) {
+                pill.textContent = 'KING IN CHECK!';
+                pill.className = 'text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-rose-500/30 border border-rose-400 text-rose-200 animate-pulse';
+            } else {
+                pill.textContent = 'ACTIVE DOMAIN';
+                pill.className = 'text-[10px] font-mono-code px-2 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-200';
+            }
+
+            // Compute Cursed Energy Material Balance & Captured Pieces
+            const history = chess.history({ verbose: true });
+            const capByW = [];
+            const capByB = [];
+            history.forEach(m => {
+                if (m.captured) {
+                    const icon = JJK_LORE[m.color === 'w' ? 'b' : 'w'][m.captured].icon;
+                    if (m.color === 'w') capByW.push(icon);
+                    else capByB.push(icon);
+                }
+            });
+
+            document.getElementById('captured-by-white').textContent = capByW.join(' ') || '—';
+            document.getElementById('captured-by-black').textContent = capByB.join(' ') || '—';
+
+            const board = chess.board();
+            let wMat = 0, bMat = 0;
+            board.forEach(row => row.forEach(cell => {
+                if (cell && cell.type !== 'k') {
+                    if (cell.color === 'w') wMat += PIECE_VALUES[cell.type];
+                    else bMat += PIECE_VALUES[cell.type];
+                }
+            }));
+            const total = Math.max(1, wMat + bMat);
+            const wPct = Math.round((wMat / total) * 100);
+            document.getElementById('ce-bar-white').style.width = `${wPct}%`;
+            document.getElementById('ce-bar-black').style.width = `${100 - wPct}%`;
+        }
+
+        function appendMoveToLog(moveObj) {
+            const log = document.getElementById('move-log');
+            if (!log) return;
+            if (chess.history().length === 1) log.innerHTML = '';
+
+            const info = JJK_LORE[moveObj.color][moveObj.piece];
+            const entry = document.createElement('div');
+            entry.className = 'flex items-center justify-between py-0.5 border-b border-white/5';
+            entry.innerHTML = `
+                <span class="${moveObj.color === 'w' ? 'text-cyan-300' : 'text-rose-400'} font-semibold">
+                    ${info.icon} ${info.short}
+                </span>
+                <span class="text-amber-300">${moveObj.from.toUpperCase()} → ${moveObj.to.toUpperCase()} ${moveObj.captured ? '⚡' : ''}</span>
+            `;
+            log.prepend(entry);
+        }
+
+        function checkGameEndConditions() {
+            if (!chess.game_over()) return false;
+            if (chess.in_checkmate()) {
+                const winnerWhite = chess.turn() === 'b';
+                triggerKanjiCallout(
+                    winnerWhite ? '無量空処' : '伏魔御廚子',
+                    winnerWhite ? 'VICTORY: SATORU GOJO & SORCERERS!' : 'VICTORY: RYOMEN SUKUNA & CURSES!',
+                    winnerWhite
+                );
+                soundFX.playBlackFlashCapture();
+            } else {
+                triggerKanjiCallout('領域相殺', 'DOMAIN STALEMATE / DRAW', true);
+            }
+            return true;
+        }
+
+        function setGameMode(mode) {
+            gameMode = mode;
+            document.getElementById('btn-mode-ai').className = `m3-btn ${mode === 'ai' ? 'active-cyan' : ''}`;
+            document.getElementById('btn-mode-2p').className = `m3-btn ${mode === '2p' ? 'active-cyan' : ''}`;
+            document.getElementById('btn-mode-bt').className = `m3-btn ${mode === 'bt' ? 'active-cyan' : 'border-cyan-400/50 text-cyan-200'}`;
+            showToast(`MODE: ${mode === 'ai' ? 'VS CURSED SPIRIT AI' : mode === '2p' ? '2-PLAYER LOCAL PASS & PLAY' : 'BLUETOOTH / P2P MULTIPLAYER'}`);
+        }
+
+        function cycleAIGrade() {
+            aiGrade = (aiGrade % 3) + 1;
+            const names = { 1: 'Grade 2', 2: 'Grade 1', 3: 'Special Grade' };
+            document.getElementById('ai-grade-label').textContent = names[aiGrade];
+            showToast(`CURSED AI DIFFICULTY: ${names[aiGrade].toUpperCase()}`);
+        }
+
+        function setPromotionPiece(p) {
+            promotionPiece = p;
+            ['q', 'r', 'n'].forEach(k => {
+                const btn = document.getElementById(`promo-${k}`);
+                if (btn) {
+                    btn.className = k === p
+                        ? 'px-1.5 py-0.5 rounded bg-cyan-500/30 border border-cyan-400 text-white font-bold'
+                        : 'px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300';
+                }
+            });
+        }
+
+        function setCameraPreset(preset) {
+            cameraMode = preset;
+            ['sorcerer', 'curse', 'top', 'orbit'].forEach(k => {
+                const el = document.getElementById(`cam-${k}`);
+                if (el) el.className = `m3-btn ${k === preset ? 'active-cyan' : ''}`;
+            });
+
+            const startPos = camera.position.clone();
+            const targetPos = new THREE.Vector3(0, 14.5, 18.5);
+            if (preset === 'curse') targetPos.set(0, 14.5, -18.5);
+            else if (preset === 'top') targetPos.set(0, 25.5, 0.01);
+            else if (preset === 'orbit') targetPos.set(17, 13.5, 17);
+
+            const startTime = performance.now();
+            activeAnimations.push({
+                update: (now) => {
+                    const t = Math.min(1, (now - startTime) / 650);
+                    camera.position.lerpVectors(startPos, targetPos, t);
+                    controls.target.set(0, 0.8, 0);
+                    return t >= 1;
+                }
+            });
+        }
+
+        function toggleAudio() {
+            soundFX.enabled = !soundFX.enabled;
+            document.getElementById('icon-audio').textContent = soundFX.enabled ? 'volume_up' : 'volume_off';
+            document.getElementById('btn-audio').className = `m3-btn ${soundFX.enabled ? 'active-cyan' : ''}`;
+            showToast(`CURSED AUDIO: ${soundFX.enabled ? 'ENABLED' : 'MUTED'}`);
+        }
+
+        function undoLastMove() {
+            if (isAnimatingTurn) return;
+            chess.undo();
+            if (gameMode === 'ai' && chess.turn() === 'b') chess.undo();
+            clearSelection();
+            syncBoardPiecesFromFEN();
+            updateHUDStatus();
+            showToast('TIME REVERSAL: LAST MOVE UNDONE');
+        }
+
+        function resetDomainGame(notifyPeer = true) {
+            chess.reset();
+            clearSelection();
+            syncBoardPiecesFromFEN();
+            updateHUDStatus();
+            document.getElementById('move-log').innerHTML = '<div class="text-slate-400 italic">Domain Expansion reset. Click any glowing Sorcerer piece to begin...</div>';
+            triggerKanjiCallout('領域展開', 'DOMAIN EXPANSION: INFINITE CATHEDRAL', true);
+            if (notifyPeer && p2pState.connected) {
+                sendPeerPacket({ type: 'RESET' });
+            }
+        }
+
+        function cycleLabelMode() {
+            const modes = ['all', 'hover', 'off'];
+            labelMode = modes[(modes.indexOf(labelMode) + 1) % modes.length];
+            const labels = { all: 'IDs: ALL', hover: 'IDs: HOVER', off: 'IDs: OFF' };
+            document.getElementById('label-mode-text').textContent = labels[labelMode];
+            document.getElementById('btn-label-mode').className = `m3-btn ${labelMode !== 'off' ? 'active-cyan' : ''}`;
+            updateBadgeVisibility();
+            showToast(`3D CHARACTER ID BADGES: ${labelMode.toUpperCase()}`);
+        }
+
+        function toggleAnimeClashCam() {
+            animeClashCamEnabled = !animeClashCamEnabled;
+            document.getElementById('anime-cam-label').textContent = `Anime Fight: ${animeClashCamEnabled ? 'ON' : 'OFF'}`;
+            document.getElementById('btn-anime-cam').className = `m3-btn ${animeClashCamEnabled ? 'active-crimson' : ''}`;
+            showToast(`ANIME CURSED CLASH CUTSCENES: ${animeClashCamEnabled ? 'ENABLED' : 'OFF'}`);
+        }
+
+        function toggleBoardCoords() {
+            showGridCoordinates = !showGridCoordinates;
+            tileCoordSprites.forEach(s => { s.visible = showGridCoordinates; });
+            document.getElementById('btn-grid-coords').className = `m3-btn ${showGridCoordinates ? 'active-cyan' : ''}`;
+            showToast(`64-SQUARE TACTICAL COORDINATES: ${showGridCoordinates ? 'VISIBLE' : 'HIDDEN'}`);
+        }
+
+        function openDeployModal() {
+            const m = document.getElementById('deploy-modal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeDeployModal() {
+            const m = document.getElementById('deploy-modal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function downloadStandaloneGameFile() {
+            const htmlSource = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'jujutsu-kaisen-3d-chess.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showToast('DOWNLOADED! OPEN jujutsu-kaisen-3d-chess.html IN ANY BROWSER!');
+        }
+
+        function toggleFullscreenDomain() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {
+                    showToast('USE "DOWNLOAD STANDALONE HTML" OR "NEW TAB" FOR FULLSCREEN!');
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function openInStandaloneTab() {
+            const htmlSource = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+            const blob = new Blob([htmlSource], { type: 'text/html;charset=utf-8' });
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+            showToast('OPENED GAME IN DEDICATED BROWSER TAB!');
+        }
+
+        function handleCustomGLBUpload(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file || typeof THREE.GLTFLoader === 'undefined') {
+                showToast('SELECT A VALID .GLB/.GLTF 3D MODEL');
+                return;
+            }
+            const currentPiece = chess.get(inspectedSquare) || { color: 'w', type: 'k' };
+            const key = `${currentPiece.color}_${currentPiece.type}`;
+            const url = URL.createObjectURL(file);
+            const loader = new THREE.GLTFLoader();
+
+            showToast(`LOADING CUSTOM 3D MODEL FOR ${JJK_LORE[currentPiece.color][currentPiece.type].short}...`);
+            loader.load(url, (gltf) => {
+                const model = gltf.scene;
+                const box = new THREE.Box3().setFromObject(model);
+                const size = new THREE.Vector3();
+                box.getSize(size);
+                const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                model.scale.setScalar(2.2 / maxDim);
+                model.position.y = 0.45;
+                customGLBModels[key] = model;
+                syncBoardPiecesFromFEN();
+                inspectPieceAtSquare(inspectedSquare);
+                closeDeployModal();
+                triggerKanjiCallout('器受肉', `3D GLB LOADED: ${JJK_LORE[currentPiece.color][currentPiece.type].short}`, currentPiece.color === 'w');
+            });
+        }
+
+        const p2pState = {
+            connected: false,
+            transport: null,
+            myColor: null,
+            peerJSInstance: null,
+            peerJSConn: null,
+            broadcastChannel: null,
+            roomCode: null
+        };
+
+        function openBluetoothModal() {
+            const m = document.getElementById('bt-modal');
+            m.classList.remove('hidden');
+            m.classList.add('flex');
+        }
+
+        function closeBluetoothModal() {
+            const m = document.getElementById('bt-modal');
+            m.classList.add('hidden');
+            m.classList.remove('flex');
+        }
+
+        function updateBTModalStatus(title, desc, state = 'READY') {
+            const titleEl = document.getElementById('bt-status-title');
+            const descEl = document.getElementById('bt-status-desc');
+            const dotEl = document.getElementById('bt-status-dot');
+            if (titleEl) titleEl.textContent = title;
+            if (descEl) descEl.textContent = desc;
+            if (dotEl) {
+                dotEl.className = 'w-3 h-3 rounded-full ' + (
+                    state === 'CONNECTED' ? 'bg-emerald-400 shadow-[0_0_10px_#34d399]' :
+                    state === 'SCAN' ? 'bg-cyan-400 animate-ping' : 'bg-amber-400 animate-pulse'
+                );
+            }
+        }
+
+        function updateTopBarBTStatus() {
+            const dot = document.getElementById('nav-bt-dot');
+            const text = document.getElementById('nav-bt-text');
+            const badge = document.getElementById('nav-bt-badge');
+            if (p2pState.connected) {
+                dot.className = 'w-1.5 h-1.5 rounded-full bg-cyan-400';
+                text.textContent = p2pState.myColor === 'w' ? 'P2P: WHITE' : p2pState.myColor === 'b' ? 'P2P: BLACK' : 'P2P: SYNC';
+                badge.classList.add('bt-connected-pill');
+                setGameMode('bt');
+            }
+        }
+
+        function createQuickRoomCode() {
+            if (typeof Peer === 'undefined') {
+                updateBTModalStatus('USE DUAL-WINDOW SYNC BELOW', 'PeerJS broker unreachable in offline mode.', 'WARN');
+                return;
+            }
+            const codeNum = Math.floor(1000 + Math.random() * 9000);
+            const shortCode = `JJK-${codeNum}`;
+            const fullPeerId = `jjk-domain-chess-2026-${codeNum}`;
+            document.getElementById('room-code-display').textContent = shortCode;
+            updateBTModalStatus(`CREATING ROOM ${shortCode}...`, 'Registering P2P channel...', 'SCAN');
+
+            if (p2pState.peerJSInstance) p2pState.peerJSInstance.destroy();
+            const peer = new Peer(fullPeerId);
+            p2pState.peerJSInstance = peer;
+            p2pState.roomCode = shortCode;
+
+            peer.on('open', () => {
+                updateBTModalStatus(`ROOM READY: ${shortCode}`, `Tell Player 2 to enter "${shortCode}" and click Join!`, 'SCAN');
+                showToast(`ROOM CODE CREATED: ${shortCode}`);
+            });
+            peer.on('connection', (conn) => bindPeerJSConnection(conn, 'w'));
+        }
+
+        function joinQuickRoomCode() {
+            if (typeof Peer === 'undefined') return;
+            const raw = document.getElementById('join-room-code-input').value.trim();
+            const digits = raw.match(/\d{4}/);
+            if (!digits) {
+                showToast('ENTER THE 4-DIGIT ROOM CODE (E.G. 4821)');
+                return;
+            }
+            const targetPeerId = `jjk-domain-chess-2026-${digits[0]}`;
+            updateBTModalStatus(`JOINING JJK-${digits[0]}...`, 'Connecting directly to Host...', 'SCAN');
+
+            if (p2pState.peerJSInstance) p2pState.peerJSInstance.destroy();
+            const peer = new Peer();
+            p2pState.peerJSInstance = peer;
+            peer.on('open', () => {
+                const conn = peer.connect(targetPeerId, { reliable: true });
+                bindPeerJSConnection(conn, 'b');
+            });
+        }
+
+        function bindPeerJSConnection(conn, myColor) {
+            p2pState.peerJSConn = conn;
+            conn.on('open', () => {
+                p2pState.connected = true;
+                p2pState.transport = 'peerjs';
+                p2pState.myColor = myColor;
+                updateBTModalStatus('CONNECTED TO OPPONENT!', `You play ${myColor === 'w' ? 'WHITE (SORCERERS)' : 'BLACK (CURSES)'}`, 'CONNECTED');
+                updateTopBarBTStatus();
+                setCameraPreset(myColor === 'w' ? 'sorcerer' : 'curse');
+                triggerKanjiCallout('呪力共鳴', '2-DEVICE LINK ESTABLISHED!', myColor === 'w');
+            });
+            conn.on('data', (data) => {
+                const packet = typeof data === 'string' ? JSON.parse(data) : data;
+                handleIncomingPeerPacket(packet);
+            });
+        }
+
+        function shareRoomInviteLink() {
+            if (!p2pState.roomCode) createQuickRoomCode();
+            const url = `${window.location.href.split('?')[0]}?room=${p2pState.roomCode || ''}`;
+            const input = document.createElement('input');
+            input.value = url;
+            document.body.appendChild(input);
+            input.select();
+            document.execCommand('copy');
+            document.body.removeChild(input);
+            showToast(`ROOM INVITE COPIED (${p2pState.roomCode})!`);
+        }
+
+        async function scanHardwareBluetooth() {
+            if (!navigator.bluetooth) {
+                showToast('USE METHOD A (1-CLICK ROOM CODE) ABOVE FOR ALL PHONES & LAPTOPS!');
+                return;
+            }
+            try {
+                const device = await navigator.bluetooth.requestDevice({ acceptAllDevices: true });
+                updateBTModalStatus(`PAIRED WITH ${device.name || 'DEVICE'}`, 'Generating Room Code for data sync...', 'CONNECTED');
+                createQuickRoomCode();
+            } catch (e) {
+                createQuickRoomCode();
+            }
+        }
+
+        function startInstantAutoDiscovery() {
+            if (typeof BroadcastChannel === 'undefined') return;
+            if (p2pState.broadcastChannel) p2pState.broadcastChannel.close();
+            const bc = new BroadcastChannel('jjk_domain_chess_sync_v1');
+            p2pState.broadcastChannel = bc;
+            p2pState.connected = true;
+            p2pState.transport = 'broadcast';
+            p2pState.myColor = null;
+            bc.onmessage = (ev) => {
+                const packet = typeof ev.data === 'string' ? JSON.parse(ev.data) : ev.data;
+                handleIncomingPeerPacket(packet);
+            };
+            updateBTModalStatus('DUAL-WINDOW SYNC ACTIVE!', 'Open a second tab to see moves sync live!', 'CONNECTED');
+            updateTopBarBTStatus();
+            showToast('INSTANT DUAL-WINDOW SYNC ENABLED!');
+        }
+
+        function handleIncomingPeerPacket(packet) {
+            if (!packet || !packet.type) return;
+            if (packet.type === 'MOVE' && packet.move && !isAnimatingTurn) {
+                executeMove(packet.move, false);
+            } else if (packet.type === 'RESET') {
+                resetDomainGame(false);
+            } else if (packet.type === 'TAUNT') {
+                triggerKanjiCallout(packet.kanji || '領域展開', packet.quote || 'CURSED TAUNT!', true);
+                soundFX.playBlackFlashCapture();
+            }
+        }
+
+        function sendP2PTaunt(kanji, quote) {
+            triggerKanjiCallout(kanji, quote, true);
+            soundFX.playBlackFlashCapture();
+            sendPeerPacket({ type: 'TAUNT', kanji, quote });
+        }
+
+        function sendPeerPacket(packet) {
+            const payload = JSON.stringify(packet);
+            if (p2pState.peerJSConn && p2pState.peerJSConn.open) {
+                p2pState.peerJSConn.send(packet);
+            }
+            if (p2pState.broadcastChannel) {
+                p2pState.broadcastChannel.postMessage(payload);
+            }
+        }
+
+        function initThreeScene() {
+            const container = document.getElementById('canvas-container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x0b0716, 0.015);
+
+            camera = new THREE.PerspectiveCamera(44, window.innerWidth / window.innerHeight, 0.1, 160);
+            camera.position.set(0, 14.5, 18.5);
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.innerHTML = '';
+            container.appendChild(renderer.domElement);
+
+            if (typeof THREE.OrbitControls !== 'undefined') {
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.06;
+                controls.maxPolarAngle = Math.PI / 2 - 0.04;
+                controls.minDistance = 7;
+                controls.maxDistance = 38;
+                controls.target.set(0, 0.8, 0);
+            } else {
+                controls = { target: new THREE.Vector3(0, 0.8, 0), update: () => camera.lookAt(0, 0.8, 0) };
+            }
+
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            highlightGroup = new THREE.Group();
+            scene.add(highlightGroup);
+
+            initMaterials();
+            buildLighting();
+            buildGothicCathedral();
+            buildChessboard();
+            buildFloatingParticles();
+
+            chess = new Chess();
+            initInspectorViewport();
+            syncBoardPiecesFromFEN();
+            inspectPieceAtSquare('e1');
+            updateHUDStatus();
+
+            // Pointer Interaction
+            let pointerDownPos = { x: 0, y: 0 };
+            renderer.domElement.addEventListener('pointerdown', (e) => {
+                pointerDownPos = { x: e.clientX, y: e.clientY };
+            });
+
+            renderer.domElement.addEventListener('pointerup', (e) => {
+                const dist = Math.hypot(e.clientX - pointerDownPos.x, e.clientY - pointerDownPos.y);
+                if (dist > 9) return;
+
+                const rect = renderer.domElement.getBoundingClientRect();
+                mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+                mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+                raycaster.setFromCamera(mouse, camera);
+
+                const pieceRoots = Object.values(pieceMeshes);
+                const hitPieces = raycaster.intersectObjects(pieceRoots, true);
+                if (hitPieces.length > 0) {
+                    let obj = hitPieces[0].object;
+                    while (obj && !obj.userData.square && obj.parent) obj = obj.parent;
+                    if (obj && obj.userData.square) {
+                        handleSquareClick(obj.userData.square);
+                        return;
+                    }
+                }
+
+                const hitTiles = raycaster.intersectObjects(squareMeshes);
+                if (hitTiles.length > 0) {
+                    handleSquareClick(hitTiles[0].object.userData.square);
+                }
+            });
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            });
+
+            // Trigger Dramatic Welcome Entrance
+            setTimeout(() => {
+                triggerKanjiCallout('領域展開', 'DOMAIN EXPANSION: INFINITE CATHEDRAL', true);
+            }, 300);
+
+            animateLoop();
+        }
+
+        function animateLoop() {
+            requestAnimationFrame(animateLoop);
+            const now = performance.now();
+            const timeSec = now * 0.001;
+
+            if (cameraMode === 'orbit' && !isAnimatingTurn) {
+                camera.position.x = Math.cos(timeSec * 0.28) * 19.5;
+                camera.position.z = Math.sin(timeSec * 0.28) * 19.5;
+                camera.position.y = 13.5 + Math.sin(timeSec * 0.5) * 1.5;
+            }
+
+            if (controls) controls.update();
+
+            // 1. Continuous Character Idle Breathing, Levitation & Dharma Wheel Spin
+            Object.values(pieceMeshes).forEach(mesh => {
+                const phase = mesh.userData.phase || 0;
+                if (mesh.userData.auraGroup) {
+                    mesh.userData.auraGroup.rotation.z = timeSec * 1.4 + phase;
+                }
+                if (mesh.userData.bodyGroup && !isAnimatingTurn) {
+                    mesh.userData.bodyGroup.position.y = Math.sin(timeSec * 2.6 + phase) * 0.065;
+                    mesh.userData.bodyGroup.rotation.y = Math.sin(timeSec * 1.2 + phase) * 0.08;
+                }
+                if (mesh.userData.dharmaWheel) {
+                    mesh.userData.dharmaWheel.rotation.y = timeSec * 2.2;
+                }
+            });
+
+            // 2. Cathedral Rose Window & Braziers
+            if (roseWindowGroup) {
+                roseWindowGroup.rotation.z = timeSec * 0.12;
+            }
+            cathedralBraziers.forEach(b => {
+                b.mesh.position.y = b.baseY + Math.sin(timeSec * 3.2 + b.phase) * 0.22;
+                b.mesh.rotation.y = timeSec * 2.0;
+            });
+
+            // 3. Floating Cursed Energy Sparks
+            floatingParticles.forEach(p => {
+                p.mesh.position.y += p.speedY;
+                p.mesh.rotation.x += 0.02;
+                p.mesh.rotation.y += 0.03;
+                if (p.mesh.position.y > 18) p.mesh.position.y = 0.5;
+            });
+
+            // 4. Process Active Move, Projectile & Shatter Animations
+            for (let i = activeAnimations.length - 1; i >= 0; i--) {
+                const done = activeAnimations[i].update(now);
+                if (done) activeAnimations.splice(i, 1);
+            }
+
+            // 5. Render Main Scene & 3D Turntable Inspector
+            renderer.render(scene, camera);
+
+            if (inspectorRenderer && inspectorScene && inspectorCamera && inspectorMeshGroup) {
+                inspectorMeshGroup.rotation.y = timeSec * 0.95;
+                inspectorRenderer.render(inspectorScene, inspectorCamera);
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (typeof THREE !== 'undefined' && typeof Chess !== 'undefined') {
+                initThreeScene();
+            } else {
+                window.addEventListener('load', initThreeScene);
+            }
+        });
+    </script>
+
+</body></html>
